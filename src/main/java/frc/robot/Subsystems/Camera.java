@@ -35,13 +35,22 @@ public class Camera extends SubsystemBase {
 
   public Camera(CommandSwerveDrivetrain swerve) {
     camera = new PhotonCamera("AprilTagsCamera");
-    Transform3d robotToCam = new Transform3d(new Translation3d(-0.34, -.17, 0.18),
-        new Rotation3d(Math.toDegrees(0), Math.toRadians(-33), Math.toRadians(180))); // Cam mounted facing forward,
-                                                                                      // half a meter forward
-    // of center, half a meter up from center.
+
+    Transform3d robotToCam = new Transform3d(
+      new Translation3d(-0.34, -.17, 0.18), 
+      new Rotation3d(Math.toDegrees(0), 
+      Math.toRadians(-33), Math.toRadians(180))
+    ); // Cam mounted facing forward, half a meter forward of center, half a meter up from center.
+
     AprilTagFieldLayout fieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
-    photonPoseEstimator = new PhotonPoseEstimator(fieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, camera,
-        robotToCam);
+    
+    photonPoseEstimator = new PhotonPoseEstimator(
+      fieldLayout, 
+      PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, 
+      camera,
+      robotToCam
+    );
+
     photonPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
     this.swerve = swerve;
   }
@@ -73,6 +82,7 @@ public class Camera extends SubsystemBase {
   public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
     photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
     SmartDashboard.putNumber("Amount of tags detected", getLatestResult().targets.size());
+
     return photonPoseEstimator.update();
   }
 
@@ -83,11 +93,9 @@ public class Camera extends SubsystemBase {
       if (tag.getFiducialId() == tagNum) {
         SmartDashboard.putNumber("Rotation Speed to get to April Tag", tag.getYaw());
         lastYaw = tag.getYaw();
-        if (Math.abs(tag.getYaw()) > 3) {
+
+        if (Math.abs(tag.getYaw()) > 3)
           return tag.getYaw() * -0.25;
-        } else {
-          return 0.0;
-        }
       }
     }
     // if (Math.abs(tag.getYaw()) < 3) {

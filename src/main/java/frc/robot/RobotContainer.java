@@ -21,6 +21,7 @@ import frc.robot.Commands.FourPieceLeft;
 import frc.robot.Commands.VisionPose;
 import frc.robot.Commands.Shooter.SpinWheels;
 import frc.robot.Subsystems.Camera;
+import frc.robot.Subsystems.Intake;
 import frc.robot.Subsystems.Shooter;
 import frc.robot.Subsystems.TeamSelector;
 import frc.robot.generated.TunerConstants;
@@ -37,8 +38,9 @@ public class RobotContainer {
   private final CommandSwerveDrivetrain drivetrain = TunerConstants.DriveTrain; // My drivetrain
   private final Camera m_camera;
   private final TeamSelector m_teamSelector;
-  // private final Shooter m_shooter;
-  // private final AutoShoot m_autoshoot;
+  private final Shooter m_shooter;
+  private final Intake m_intake;
+  private final AutoShoot m_autoshoot;
   //private final VisionPose m_visionpose;
 
   // Field centric drive
@@ -61,18 +63,18 @@ public class RobotContainer {
       )
     );
 
-    // operatercontroller.leftBumper().whileTrue(drivetrain.applyRequest(() -> 
-    //     // Drive forward with negative Y (forward)
-    //     drive.withVelocityX(-drivercontroller.getLeftY() * Constants.NathanSpeed)
+    drivercontroller.rightBumper().whileTrue(drivetrain.applyRequest(() -> 
+        // Drive forward with negative Y (forward)
+        drive.withVelocityX(-drivercontroller.getLeftY() * Constants.NathanSpeed)
 
-    //       // Drive left with negative X (left)
-    //       .withVelocityY(-drivercontroller.getLeftX() * Constants.NathanSpeed)
+          // Drive left with negative X (left)
+          .withVelocityY(-drivercontroller.getLeftX() * Constants.NathanSpeed)
 
-    //       // Drive counterclockwise with negative X (left)
-    //       .withRotationalRate(m_autoshoot.targetAll())
-    // ));
+          // Drive counterclockwise with negative X (left)
+          .withRotationalRate(m_autoshoot.targetAll(7))
+    ));
 
-    // m_shooter.setDefaultCommand(new ShooterCommand(m_shooter, () -> operatercontroller.getLeftY(), () -> operatercontroller.b().getAsBoolean(), () -> operatercontroller.y().getAsBoolean()));
+    m_shooter.setDefaultCommand(new ShooterCommand(m_shooter, m_intake, () -> operatercontroller.getLeftY(), () -> operatercontroller.b().getAsBoolean(), () -> operatercontroller.y().getAsBoolean()));
 
     drivercontroller.a().whileTrue(
       drivetrain.applyRequest(() -> brake)
@@ -82,10 +84,10 @@ public class RobotContainer {
       drivetrain.applyRequest(() -> point.withModuleDirection(new Rotation2d(-drivercontroller.getLeftY(), -drivercontroller.getLeftX())))
     );
 
-    // operatercontroller.a().whileTrue(Commands.startEnd(() -> m_shooter.setShooterVelocity(), () -> m_shooter.stopShooter()));
+    operatercontroller.a().whileTrue(Commands.startEnd(() -> m_shooter.setShooterVelocity(), () -> m_shooter.stopShooter()));
 
     
-    // operatercontroller.x().whileTrue(Commands.startEnd(() -> m_shooter.feedMotorPower(0.6), () -> m_shooter.feedMotorPower(0.0)));
+    operatercontroller.x().whileTrue(Commands.startEnd(() -> m_intake.feedMotorPower(0.6), () -> m_intake.feedMotorPower(0.0)));
     
     // operatercontroller.leftBumper().whileFalse(Commands.run(() -> m_shooter.targetAngle = 190));
 
@@ -100,10 +102,11 @@ public class RobotContainer {
   }
 
   public RobotContainer() {
-    // m_shooter = new Shooter();
+    m_shooter = new Shooter();
+    m_intake = new Intake();
     m_camera = new Camera(drivetrain);
     m_teamSelector = new TeamSelector();
-    // m_autoshoot = new AutoShoot(drivetrain, m_shooter, m_camera, drive);
+    m_autoshoot = new AutoShoot(drivetrain, m_shooter, m_camera, drive);
 
     // NamedCommands.registerCommand("SpinWheels", new SpinWheels(m_shooter));
     

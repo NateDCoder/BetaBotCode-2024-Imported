@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.PIDFF_CONSTANTS;
 
 public class Shooter extends SubsystemBase {
 
@@ -25,26 +26,25 @@ public class Shooter extends SubsystemBase {
 
   SparkPIDController bottomShooterPID, topShooterPID;
   PIDController pivotPID;
+
   public RelativeEncoder shooterTopEncoder, shooterBottomEncoder;
   public double velocityRPM, targetAngle = 190;
-  public double p = 0.01, i = 0, d = 0, pivotFF = 0.03;
+  public double p = 0.03, i = 0, d = 0, pivotFF = 0.03;
 
   /** Creates a new ShooterSubsystem. */
   public Shooter() {
     topShooterPID = topShooter.getPIDController();
     bottomShooterPID = bottomShooter.getPIDController();
 
-    pivotPID = new PIDController(0.01, 0, 0);
+    pivotPID = new PIDController(0.03, 0, 0);
 
     // pivotPID.setFeedbackDevice(pivotEncoder);
     shooterTopEncoder = topShooter.getEncoder();
     shooterBottomEncoder = bottomShooter.getEncoder();
 
     velocityRPM = 3000; // Made this number up
-    configurePID(topShooterPID, Constants.shooterPID.getP(), Constants.shooterPID.getI(), Constants.shooterPID.getD(),
-        Constants.shooterPID.getFF());
-    configurePID(bottomShooterPID, Constants.shooterPID.getP(), Constants.shooterPID.getI(),
-        Constants.shooterPID.getD(), Constants.shooterPID.getFF());
+    configureShooterPID(topShooterPID, Constants.shooterPID);
+    configureShooterPID(bottomShooterPID, Constants.shooterPID);
 
     // pivotPID.setP(p);
     // pivotPID.setI(i);
@@ -68,9 +68,37 @@ public class Shooter extends SubsystemBase {
     motorPID.setOutputRange(-1, 1);
   }
 
+  public void configureShooterPID(SparkPIDController motorPID, PIDFF_CONSTANTS shooterConstants) {
+    configurePID(motorPID, shooterConstants.getP(), shooterConstants.getI(), shooterConstants.getD(),
+        shooterConstants.getFF());
+  }
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler
+    double _targetAngle = SmartDashboard.getNumber("Target Angle", 0.0);
+    double _p = SmartDashboard.getNumber("P Angle", 0.0);
+    double _i = SmartDashboard.getNumber("I Angle", 0.0);
+    double _d = SmartDashboard.getNumber("D Angle", 0.0);
+    double _ff = SmartDashboard.getNumber("FF Angle", 0.0);
+    if(_targetAngle != targetAngle) {
+      targetAngle = _targetAngle;
+    }
+    if(_p != p) {
+      p = _p;
+      pivotPID.setP(p);
+    }
+    if(_i != i) {
+      i = _i;
+      pivotPID.setI(i);
+    }
+    if(_d != d) {
+      d = _d;
+      pivotPID.setD(d);
+    }
+    if(_ff != pivotFF) {
+      pivotFF = _ff;
+    }
     SmartDashboard.putNumber("Pivot Encoder", getPivotAngle());
   }
 
@@ -83,6 +111,7 @@ public class Shooter extends SubsystemBase {
     SmartDashboard.putNumber("Actual Bottom", shooterBottomEncoder.getVelocity());
     SmartDashboard.putNumber("Difference of Shooter",
         shooterTopEncoder.getVelocity() - Math.abs(shooterBottomEncoder.getVelocity()));
+    
   }
 
   public void stopShooter() {
@@ -91,21 +120,33 @@ public class Shooter extends SubsystemBase {
   }
 
   public void setPivotAngle() {
-    if (185 < targetAngle && targetAngle < 215) {
-      // This is geometry stuff for force required to keep it in a spot
-      double ffPower = 0.0000412372 * Math.pow((getPivotAngle() - 170), 2) + 0.0185154;
-      SmartDashboard.putNumber("Pivot FF Power", ffPower);
-      double power = -(pivotPID.calculate(getPivotAngle(), targetAngle) + ffPower);
-      SmartDashboard.putNumber("PID Power", power);
+    pivot.set(0);
+    // if (185 > targetAngle || targetAngle > 215) {
+    //   pivot.set(0);
+    //   return;
+    // }
 
-      pivot.set(Math.signum(power) * Math.min(Math.abs(power), Constants.MAX_PIVOT_POWER));
+    // // This is geometry stuff for force required to keep it in a spot
+    // double ffPower = 0.068;
 
-    } else {
-      pivot.set(0);
-    }
+    // double power = (pivotPID.calculate(getPivotAngle(), targetAngle)+ffPower);
+    // if(getPivotAngle() < 185 && Math.signum(power)==-1) {
+    //   pivot.set(0);
+    //   return;
+    // }
+    // SmartDashboard.putNumber("PID Power", power);
+    // pivot.set(Math.signum(power) * Math.min(Math.abs(power),
+    //     Constants.MAX_PIVOT_POWER));
   }
 
   public double getPivotAngle() {
-    return (pivotEncoder.getAbsolutePosition() * 360 + Constants.PIVOT_ANGLE_OFFSET) % 360;
+    double correctedAngle = pivotEncoder.getAbsolutePosition() * 360 + Constants.PIVOT_ANGLE_OFFSET;
+    if (correctedAngle > 360) {
+      correctedAngle %= 360;
+    }
+    if (correctedAngle < 0) {
+      correctedAngle = 360 - correctedAngle;
+    }
+    return correctedAngle;
   }
 }

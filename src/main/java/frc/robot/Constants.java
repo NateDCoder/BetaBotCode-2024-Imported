@@ -23,11 +23,11 @@ public final class Constants {
   public static double NathanSpeed = 2;
   public static PIDFF_CONSTANTS shooterPID = new PIDFF_CONSTANTS(6e-5, 0, 0, 0.000180);
 
-  public static final int BOTTOM_SHOOTER_MOTOR_ID = 13;
-  public static final int TOP_SHOOTER_MOTOR_ID = 14;
-  public static final int FEED_MOTOR_ID = 15;
-  public static final int PIVOT_MOTOR_ID = 16;
-  public static final double MAX_PIVOT_POWER = 0.2;
+  public static final int BOTTOM_SHOOTER_MOTOR_ID = 41;
+  public static final int TOP_SHOOTER_MOTOR_ID = 42;
+  public static final int FEED_MOTOR_ID = 43;
+  public static final int PIVOT_MOTOR_ID = 44;
+  public static final double MAX_PIVOT_POWER = 0.5;
 
   public static final int INTAKE_MOTOR_ID =      52;
   public static final int GUIDE_RIGHT_MOTOR_ID = 53;
@@ -35,8 +35,8 @@ public final class Constants {
 
   public static final double INTAKE_POWER = 0.6;
 
-  public static final double PIVOT_ANGLE_OFFSET = 45;
-  public static final double APRIL_TAG_OFFSET = 1.02851778742;
+  public static final double PIVOT_ANGLE_OFFSET = -84;
+  public static final double APRIL_TAG_OFFSET = 1.01237005816; //offset before 2/21/24 5:58 PM: 1.02851778742
 
   public static class PIDFF_CONSTANTS {
     public double p, i, d, ff;

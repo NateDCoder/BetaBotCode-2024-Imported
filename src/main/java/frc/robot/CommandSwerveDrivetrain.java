@@ -38,19 +38,20 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private final SwerveRequest.ApplyChassisSpeeds autoRequest = new SwerveRequest.ApplyChassisSpeeds();
 
     // There are 2 constructors based on what you pass in
-    public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency,
+    public CommandSwerveDrivetrain(Supplier<Boolean> teamColor, SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency,
             SwerveModuleConstants... modules) {
         super(driveTrainConstants, OdometryUpdateFrequency, modules);
-        configurePathPlanner();
+        configurePathPlanner(teamColor);
         if (Utils.isSimulation()) {
             startSimThread();
         }
     }
 
     // The second one is the one we use
-    public CommandSwerveDrivetrain(SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
+    public CommandSwerveDrivetrain(Supplier<Boolean> teamColor, SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
         super(driveTrainConstants, modules);
-        configurePathPlanner(); // Loads the path planner config makes sure this is run before and other path
+
+        configurePathPlanner(teamColor); // Loads the path planner config makes sure this is run before and other path
                                 // planner stuff
         if (Utils.isSimulation()) {
             startSimThread();
@@ -85,7 +86,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     }
 
     
-    private void configurePathPlanner() {
+    private void configurePathPlanner(Supplier<Boolean> teamColor) {
         double driveBaseRadius = 0;
         for (var moduleLocation : m_moduleLocations) {
             driveBaseRadius = Math.max(driveBaseRadius, moduleLocation.getNorm());
@@ -101,7 +102,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
                         TunerConstants.kSpeedAt12VoltsMps,
                         driveBaseRadius,
                         new ReplanningConfig()),
-                () -> false, // Change this if the path needs to be flipped on red vs blue
+                () -> teamColor.get(), // Change this if the path needs to be flipped on red vs blue
                 this); // Subsystem for requirements
     }
 

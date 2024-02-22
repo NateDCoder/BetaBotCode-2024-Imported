@@ -53,11 +53,11 @@ public class VisionPose extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    estimatedBotPose = swerve.getOdometry().getEstimatedPosition();
     Optional<EstimatedRobotPose> result = camera.getEstimatedGlobalPose(estimatedBotPose);
     if (!result.isPresent()) { return; }
     EstimatedRobotPose camPose = result.get();
 
-    estimatedBotPose = swerve.getOdometry().getEstimatedPosition();
     camPose2d = camPose.estimatedPose.toPose2d();
     camPose3d = camPose.estimatedPose;
 
@@ -70,20 +70,29 @@ public class VisionPose extends Command {
     SmartDashboard.putBoolean("Camera Targets Present", result.isPresent());
     // SmartDashboard.putNumber("BotPosHeading",
     // camPose.estimatedPose.toPose2d().getRotation().getDegrees());
-    if ((camPose3d.getX() != 0 && camPose3d.getY() != 0 &&
+
     /*
      * Only update if the camera pose is within 1 meter of the estimated position.
      * This will hopefully remove values that are not realistic.
      */
-        Math.abs(botX - camPose3d.getX()) < 1.0 && Math.abs(botY - camPose3d.getY()) < 1.0 && 
-        camera.getLatestResult().targets.size() > 1)) {
+    if (
+      (camPose3d.getX() != 0 && 
+        camPose3d.getY() != 0 &&
+        Math.abs(botX - camPose3d.getX()) < 1.0 && 
+        Math.abs(botY - camPose3d.getY()) < 1.0 && 
+        camera.getLatestResult().targets.size() > 1)
+        ) {
+
       swerve.setOdometryVisionMeasurement(new Pose2d(camPose2d.getX() * Constants.APRIL_TAG_OFFSET,
-      camPose2d.getY(), camPose2d.getRotation()), camPose.timestampSeconds);
+        camPose2d.getY(), camPose2d.getRotation()), camPose.timestampSeconds);
+
       SmartDashboard.putNumber("AprilTagX", camPose2d.getX() * Constants.APRIL_TAG_OFFSET);
       SmartDashboard.putNumber("AprilTagY", camPose2d.getY());
       SmartDashboard.putNumber("AprilTagHeading", camPose2d.getRotation().getDegrees());
+
     } else if ((Math.abs(swerve.getOdometry().getEstimatedPosition().getX()) < 1 &&
         Math.abs(swerve.getOdometry().getEstimatedPosition().getY()) < 1)) {
+
       swerve.seedFieldRelative(new Pose2d(camPose2d.getX() * Constants.APRIL_TAG_OFFSET,
           camPose2d.getY(), camPose2d.getRotation()));
 

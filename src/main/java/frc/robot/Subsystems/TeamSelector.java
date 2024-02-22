@@ -10,12 +10,18 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class TeamSelector extends SubsystemBase {
   /** Creates a new TeamSelector. */
-  DigitalInput teamSwitch = new DigitalInput(0);
+  // static DigitalInput teamSwitch = new DigitalInput(0);
+  DigitalInput irSensor = new DigitalInput(1);
   public TeamSelector() {}
 
   @Override
   public void periodic() {
-    SmartDashboard.putBoolean("Color Indicator", teamSwitch.get());
+    SmartDashboard.putBoolean("IR-Sensor Tripped", !irSensor.get());
+    // SmartDashboard.putBoolean("Color Indicator", teamSwitch.get());
     // This method will be called once per scheduler run
+  }
+
+  public static boolean getTeamColor() {
+    return false; // True if Red, False if Blue
   }
 }

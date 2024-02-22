@@ -12,9 +12,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 public class Intake extends SubsystemBase {
-  CANSparkMax feedMotor = new CANSparkMax(Constants.FEED_MOTOR_ID, MotorType.kBrushless);
-  CANSparkMax guideLeft = new CANSparkMax(Constants.GUIDE_LEFT_MOTOR_ID, MotorType.kBrushless);
-  CANSparkMax guideRight = new CANSparkMax(Constants.GUIDE_RIGHT_MOTOR_ID, MotorType.kBrushless);
+  CANSparkMax  feedMotor   = new CANSparkMax(Constants.FEED_MOTOR_ID, MotorType.kBrushless);
+  CANSparkMax  guideLeft   = new CANSparkMax(Constants.GUIDE_LEFT_MOTOR_ID, MotorType.kBrushless);
+  CANSparkMax  guideRight  = new CANSparkMax(Constants.GUIDE_RIGHT_MOTOR_ID, MotorType.kBrushless);
   CANSparkFlex intakeMotor = new CANSparkFlex(Constants.INTAKE_MOTOR_ID, MotorType.kBrushless);
   /** Creates a new Intake. */
   public Intake() {
