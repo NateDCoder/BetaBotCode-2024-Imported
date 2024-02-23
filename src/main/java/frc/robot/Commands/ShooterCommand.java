@@ -7,6 +7,7 @@ package frc.robot.Commands;
 import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj.RobotState;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Subsystems.Intake;
@@ -43,13 +44,7 @@ public class ShooterCommand extends Command {
     // shooter.pivotRawPower(-leftYSupplier.get());
     if (RobotState.isTeleop()) {
       shooter.setPivotAngle();
-
-      // Set intake power to - on y button, and + on b button
-      intake.intakeMotorPower(
-        (yButtonSupplier.get()?-Constants.INTAKE_POWER:0) +
-        (bButtonSupplier.get()?Constants.INTAKE_POWER:0));
     }
-
   }
 
   // Called once the command ends or is interrupted.

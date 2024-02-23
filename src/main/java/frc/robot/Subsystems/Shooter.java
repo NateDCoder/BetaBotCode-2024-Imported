@@ -28,7 +28,7 @@ public class Shooter extends SubsystemBase {
   PIDController pivotPID;
 
   public RelativeEncoder shooterTopEncoder, shooterBottomEncoder;
-  public double velocityRPM, targetAngle = 190;
+  public double velocityRPM, targetAngle = 205;
   public double p = 0.03, i = 0, d = 0, pivotFF = 0.03;
 
   /** Creates a new ShooterSubsystem. */
@@ -60,6 +60,10 @@ public class Shooter extends SubsystemBase {
 
   }
 
+  public void setTargetAngle(double tAngle) {
+    targetAngle = tAngle;
+  }
+
   public void configurePID(SparkPIDController motorPID, double p, double i, double d, double ff) {
     motorPID.setP(p);
     motorPID.setI(i);
@@ -76,14 +80,16 @@ public class Shooter extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler
-    double _targetAngle = SmartDashboard.getNumber("Target Angle", 0.0);
+    // double _targetAngle = SmartDashboard.getNumber("Target Angle", 0.0);
     double _p = SmartDashboard.getNumber("P Angle", 0.0);
     double _i = SmartDashboard.getNumber("I Angle", 0.0);
     double _d = SmartDashboard.getNumber("D Angle", 0.0);
     double _ff = SmartDashboard.getNumber("FF Angle", 0.0);
-    if(_targetAngle != targetAngle) {
-      targetAngle = _targetAngle;
-    }
+    SmartDashboard.putNumber("Top Speed", shooterTopEncoder.getVelocity());
+    SmartDashboard.putNumber("Bottom Speed", shooterBottomEncoder.getVelocity());
+    // if(_targetAngle != targetAngle) {
+    //   targetAngle = _targetAngle;
+    // }
     if(_p != p) {
       p = _p;
       pivotPID.setP(p);
@@ -120,23 +126,28 @@ public class Shooter extends SubsystemBase {
   }
 
   public void setPivotAngle() {
-    pivot.set(0);
-    // if (185 > targetAngle || targetAngle > 215) {
-    //   pivot.set(0);
-    //   return;
-    // }
+    SmartDashboard.putNumber("Target Angle", targetAngle);
+    if (targetAngle < 185 || targetAngle > 215) {
+      pivot.set(0);
+      SmartDashboard.putString("Targeting a invlaid value", "2");
+      return;
+    }
 
-    // // This is geometry stuff for force required to keep it in a spot
-    // double ffPower = 0.068;
+    // This is geometry stuff for force required to keep it in a spot
+    double ffPower = 0.068;
 
-    // double power = (pivotPID.calculate(getPivotAngle(), targetAngle)+ffPower);
-    // if(getPivotAngle() < 185 && Math.signum(power)==-1) {
-    //   pivot.set(0);
-    //   return;
-    // }
-    // SmartDashboard.putNumber("PID Power", power);
-    // pivot.set(Math.signum(power) * Math.min(Math.abs(power),
-    //     Constants.MAX_PIVOT_POWER));
+    double power = (pivotPID.calculate(getPivotAngle(), targetAngle)+ffPower);
+    if(targetAngle-getPivotAngle()>5){
+      power = .8;
+    }
+    if(getPivotAngle() < 185 && Math.signum(power)==-1) {
+      SmartDashboard.putString("Trying to hit ground", "1");
+      pivot.set(0);
+      return;
+    }
+
+    SmartDashboard.putNumber("PID Power", Math.signum(power) * Math.min(Math.abs(power), Constants.MAX_PIVOT_POWER));
+    pivot.set(Math.signum(power) * Math.min(Math.abs(power), Constants.MAX_PIVOT_POWER));
   }
 
   public double getPivotAngle() {

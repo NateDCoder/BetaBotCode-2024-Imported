@@ -16,7 +16,7 @@ import frc.robot.Subsystems.Shooter;
 
 public class AutoShoot extends Command {
   CommandSwerveDrivetrain swerve;
-  Shooter shooter;
+  Shooter m_shooter;
   AprilTagFieldLayout fieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
   SwerveRequest.FieldCentric drive;
   Camera camera;
@@ -24,7 +24,7 @@ public class AutoShoot extends Command {
   public AutoShoot(CommandSwerveDrivetrain swerve, Shooter shooter, Camera camera, SwerveRequest.FieldCentric drive) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.swerve = swerve;
-    this.shooter = shooter;
+    this.m_shooter = shooter;
     this.drive = drive;
     this.camera = camera;
   }
@@ -40,9 +40,7 @@ public class AutoShoot extends Command {
 
   public double targetAll(int tagId) {
     double[] targetAngles = getTargetTagAngles(tagId);
-    shooter.targetAngle = targetAngles[0];
-    // double botRotation = swerve.getOdometry().getEstimatedPosition().getRotation().getDegrees();
-    // double targetRotation = ((botRotation + 180) - (180 + targetAngles[1]) + 180) * -0.2;
+    m_shooter.setTargetAngle(targetAngles[0]);
     double targetRotation = camera.rotateToTag(tagId);
     return targetRotation;
   }
@@ -62,7 +60,6 @@ public class AutoShoot extends Command {
     relX = Math.abs(relX);
     relY = Math.abs(relY);
     double distance = Math.sqrt((relX * relX) + (relY * relY)) - 0.35;
-
 
     double angle = 0.8061 * Math.pow(distance, 2) - 9.8159 * distance + 221.59;
     return new double[]{angle, target};

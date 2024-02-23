@@ -27,7 +27,7 @@ public final class Constants {
   public static final int TOP_SHOOTER_MOTOR_ID = 42;
   public static final int FEED_MOTOR_ID = 43;
   public static final int PIVOT_MOTOR_ID = 44;
-  public static final double MAX_PIVOT_POWER = 0.5;
+  public static final double MAX_PIVOT_POWER = 1;
 
   public static final int INTAKE_MOTOR_ID =      52;
   public static final int GUIDE_RIGHT_MOTOR_ID = 53;

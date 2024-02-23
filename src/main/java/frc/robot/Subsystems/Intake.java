@@ -8,14 +8,23 @@ import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Robot;
 
 public class Intake extends SubsystemBase {
+  boolean run;
+
+  DigitalInput irSensor = new DigitalInput(1);
   CANSparkMax  feedMotor   = new CANSparkMax(Constants.FEED_MOTOR_ID, MotorType.kBrushless);
   CANSparkMax  guideLeft   = new CANSparkMax(Constants.GUIDE_LEFT_MOTOR_ID, MotorType.kBrushless);
   CANSparkMax  guideRight  = new CANSparkMax(Constants.GUIDE_RIGHT_MOTOR_ID, MotorType.kBrushless);
   CANSparkFlex intakeMotor = new CANSparkFlex(Constants.INTAKE_MOTOR_ID, MotorType.kBrushless);
+
+  boolean robotRunning;
   /** Creates a new Intake. */
   public Intake() {
   }
@@ -26,12 +35,41 @@ public class Intake extends SubsystemBase {
 
   public void intakeMotorPower(double power) {
     intakeMotor.set(power);
-    guideLeft.set(-power);
-    guideRight.set(power);
+    guideLeft.set(power);
+    guideRight.set(-power);
+  }
+
+  public void autoIntake() {
+    run = true;
+  }
+
+  public void updateAutoIntake() {
+    if (run) {
+      if (irSensor.get()) {
+        feedMotor.set(0.5);
+        intakeMotor.set(Constants.INTAKE_POWER);
+        guideLeft.set(Constants.INTAKE_POWER);
+        guideRight.set(-Constants.INTAKE_POWER);
+      } else {
+        feedMotor.set(0.0);
+        intakeMotor.set(0.0);
+        guideLeft.set(0.0);
+        guideRight.set(0.0);
+      }
+    }
+  }
+
+  public void stopIntakeAndFeed() {
+    feedMotor.set(0.0);
+    intakeMotor.set(0.0);
+    guideLeft.set(0.0);
+    guideRight.set(0.0);
+    run = false;
   }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    SmartDashboard.putBoolean("Note In Shooter", !irSensor.get());
+    updateAutoIntake();
   }
 }

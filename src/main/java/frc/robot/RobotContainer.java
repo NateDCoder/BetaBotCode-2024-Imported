@@ -63,6 +63,7 @@ public class RobotContainer {
       )
     );
 
+    drivercontroller.rightBumper().whileFalse(Commands.run(() -> m_shooter.targetAngle = 205));
     drivercontroller.rightBumper().whileTrue(drivetrain.applyRequest(() -> 
         // Drive forward with negative Y (forward)
         drive.withVelocityX(-drivercontroller.getLeftY() * Constants.NathanSpeed)
@@ -86,10 +87,10 @@ public class RobotContainer {
 
     operatercontroller.a().whileTrue(Commands.startEnd(() -> m_shooter.setShooterVelocity(), () -> m_shooter.stopShooter()));
 
-    
-    operatercontroller.x().whileTrue(Commands.startEnd(() -> m_intake.feedMotorPower(0.6), () -> m_intake.feedMotorPower(0.0)));
-    
-    // operatercontroller.leftBumper().whileFalse(Commands.run(() -> m_shooter.targetAngle = 190));
+    operatercontroller.x().whileTrue(Commands.startEnd(() -> m_intake.autoIntake(), () -> m_intake.stopIntakeAndFeed()));
+    operatercontroller.leftBumper().whileTrue(Commands.startEnd(() -> m_intake.intakeMotorPower(0.6), () -> m_intake.intakeMotorPower(0.0)));
+    operatercontroller.rightBumper().whileTrue(Commands.startEnd(() -> m_intake.intakeMotorPower(-0.6), () -> m_intake.intakeMotorPower(0.0)));
+    operatercontroller.b().whileTrue(Commands.startEnd(() -> m_intake.feedMotorPower(0.6), () -> m_intake.feedMotorPower(0.0)));
 
     // reset the field-centric heading on left bumper press
     drivercontroller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
