@@ -4,55 +4,49 @@
 
 package frc.robot.Commands;
 
-import java.util.function.Supplier;
-
-import edu.wpi.first.wpilibj.RobotState;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Subsystems.Intake;
 import frc.robot.Subsystems.Shooter;
 
-public class ShooterCommand extends Command {
-  /** Creates a new ShooterCommand. */
-  Shooter shooter;
+public class HandleAutonShoot extends Command {
+  /** Creates a new HandleAutonShoot. */
   Intake intake;
-  Supplier<Boolean> bButtonSupplier;
-  Supplier<Boolean> yButtonSupplier;
-
-  public ShooterCommand(Shooter shooter, Intake intake, Supplier<Boolean> bButtonSupplier,
-      Supplier<Boolean> yButtonSupplier) {
-    this.shooter = shooter;
-    this.intake = intake;
-    this.bButtonSupplier = bButtonSupplier;
-    this.yButtonSupplier = yButtonSupplier;
-
-    addRequirements(shooter);
+  Shooter shooter;
+  boolean isNote;
+  public HandleAutonShoot(Intake intake, Shooter shooter) {
     // Use addRequirements() here to declare subsystem dependencies.
+    addRequirements(intake);
+    this.intake = intake;
+    this.shooter = shooter;
+    isNote = false;
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {
-  } 
+  public void initialize() {}
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (RobotState.isTeleop()) {
-      shooter.setPivotAngle();
+    if(intake.irSensor.get()) {
+      intake.feedMotorPower(0.6);
+    }else {
+      isNote = true;
+      intake.feedMotorPower(-0.1);
     }
+
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    intake.intakeMotorPower(0);
+    intake.feedMotorPower(0);
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return isNote;
   }
 }

@@ -7,6 +7,7 @@ package frc.robot.Subsystems;
 import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkBase.IdleMode;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.XboxController;
@@ -18,7 +19,7 @@ import frc.robot.Robot;
 public class Intake extends SubsystemBase {
   boolean run;
 
-  DigitalInput irSensor = new DigitalInput(1);
+  public DigitalInput irSensor = new DigitalInput(1);
   CANSparkMax  feedMotor   = new CANSparkMax(Constants.FEED_MOTOR_ID, MotorType.kBrushless);
   CANSparkMax  guideLeft   = new CANSparkMax(Constants.GUIDE_LEFT_MOTOR_ID, MotorType.kBrushless);
   CANSparkMax  guideRight  = new CANSparkMax(Constants.GUIDE_RIGHT_MOTOR_ID, MotorType.kBrushless);
@@ -27,6 +28,7 @@ public class Intake extends SubsystemBase {
   boolean robotRunning;
   /** Creates a new Intake. */
   public Intake() {
+    feedMotor.setIdleMode(IdleMode.kCoast);
   }
 
   public void feedMotorPower(double power) {

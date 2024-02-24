@@ -7,47 +7,39 @@ package frc.robot.Commands;
 import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj.RobotState;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants;
-import frc.robot.Subsystems.Intake;
-import frc.robot.Subsystems.Shooter;
+import frc.robot.Subsystems.Climber;
 
-public class ShooterCommand extends Command {
-  /** Creates a new ShooterCommand. */
-  Shooter shooter;
-  Intake intake;
-  Supplier<Boolean> bButtonSupplier;
-  Supplier<Boolean> yButtonSupplier;
+public class ClimberCommand extends Command {
+  /** Creates a new ClimberCommand. */
+  Supplier<Double> leftYSupplier;
+  Climber climber;
 
-  public ShooterCommand(Shooter shooter, Intake intake, Supplier<Boolean> bButtonSupplier,
-      Supplier<Boolean> yButtonSupplier) {
-    this.shooter = shooter;
-    this.intake = intake;
-    this.bButtonSupplier = bButtonSupplier;
-    this.yButtonSupplier = yButtonSupplier;
-
-    addRequirements(shooter);
-    // Use addRequirements() here to declare subsystem dependencies.
+  public ClimberCommand(Climber climber, Supplier<Double> leftYSupplier) {
+    addRequirements(climber);
+    this.leftYSupplier = leftYSupplier;
+    this.climber = climber;
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-  } 
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
     if (RobotState.isTeleop()) {
-      shooter.setPivotAngle();
+      if (Math.abs(leftYSupplier.get()) > 0.1) {
+        climber.setLeftClimb(leftYSupplier.get() * 0.2);
+        climber.setRightClimb(leftYSupplier.get() * 0.2);
+      }
     }
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    intake.intakeMotorPower(0);
   }
 
   // Returns true when the command should end.

@@ -28,8 +28,8 @@ public class Shooter extends SubsystemBase {
   PIDController pivotPID;
 
   public RelativeEncoder shooterTopEncoder, shooterBottomEncoder;
-  public double velocityRPM, targetAngle = 205;
-  public double p = 0.03, i = 0, d = 0, pivotFF = 0.03;
+  public double velocityRPM, targetAngle = 190;
+  public double p = 0.02, i = 0, d = 0, pivotFF = 0.03;
 
   /** Creates a new ShooterSubsystem. */
   public Shooter() {
@@ -127,19 +127,17 @@ public class Shooter extends SubsystemBase {
 
   public void setPivotAngle() {
     SmartDashboard.putNumber("Target Angle", targetAngle);
-    if (targetAngle < 185 || targetAngle > 215) {
+    if (targetAngle < 185 || targetAngle > 221) {
       pivot.set(0);
-      SmartDashboard.putString("Targeting a invlaid value", "2");
+      SmartDashboard.putNumber("Targeting an invalid value", targetAngle);
       return;
     }
 
-    // This is geometry stuff for force required to keep it in a spot
-    double ffPower = 0.068;
+    // This is the amount of power to keep it in a given place
+    double ffPower = 0.024;
 
     double power = (pivotPID.calculate(getPivotAngle(), targetAngle)+ffPower);
-    if(targetAngle-getPivotAngle()>5){
-      power = .8;
-    }
+
     if(getPivotAngle() < 185 && Math.signum(power)==-1) {
       SmartDashboard.putString("Trying to hit ground", "1");
       pivot.set(0);
@@ -152,11 +150,11 @@ public class Shooter extends SubsystemBase {
 
   public double getPivotAngle() {
     double correctedAngle = pivotEncoder.getAbsolutePosition() * 360 + Constants.PIVOT_ANGLE_OFFSET;
+    if (correctedAngle < 0) {
+      correctedAngle += 360;
+    }
     if (correctedAngle > 360) {
       correctedAngle %= 360;
-    }
-    if (correctedAngle < 0) {
-      correctedAngle = 360 - correctedAngle;
     }
     return correctedAngle;
   }

@@ -33,10 +33,15 @@ public final class Constants {
   public static final int GUIDE_RIGHT_MOTOR_ID = 53;
   public static final int GUIDE_LEFT_MOTOR_ID =  54;
 
+  public static final int CLIMB_LEFT_MOTOR_ID = 62;
+  public static final int CLIMB_RIGHT_MOTOR_ID = 61;
+
   public static final double INTAKE_POWER = 0.6;
 
   public static final double PIVOT_ANGLE_OFFSET = -84;
   public static final double APRIL_TAG_OFFSET = 1.01237005816; //offset before 2/21/24 5:58 PM: 1.02851778742
+  public static final int TEAMSWITCH_ID = 2;
+
 
   public static class PIDFF_CONSTANTS {
     public double p, i, d, ff;

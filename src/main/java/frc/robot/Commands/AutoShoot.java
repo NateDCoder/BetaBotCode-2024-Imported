@@ -59,9 +59,11 @@ public class AutoShoot extends Command {
     SmartDashboard.putNumber("Current Robot Angle", swerve.getOdometry().getEstimatedPosition().getRotation().getDegrees());
     relX = Math.abs(relX);
     relY = Math.abs(relY);
-    double distance = Math.sqrt((relX * relX) + (relY * relY)) - 0.35;
+    double distance = Math.sqrt((relX * relX) + (relY * relY)) - 0.38;
+    SmartDashboard.putNumber("Distance from target April Tag", distance);
 
-    double angle = 0.8061 * Math.pow(distance, 2) - 9.8159 * distance + 221.59;
+    // double angle = 0.8061 * Math.pow(distance, 2) - 9.8159 * distance + 221.59; This was alpha code
+    double angle = 2.06331 * Math.pow(distance, 2) - 18.2605 * distance + 235.563;
     return new double[]{angle, target};
   }
 

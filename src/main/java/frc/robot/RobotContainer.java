@@ -16,11 +16,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Commands.AutoShoot;
+import frc.robot.Commands.ClimberCommand;
 import frc.robot.Commands.ShooterCommand;
 import frc.robot.Commands.FourPieceLeft;
 import frc.robot.Commands.VisionPose;
 import frc.robot.Commands.Shooter.SpinWheels;
 import frc.robot.Subsystems.Camera;
+import frc.robot.Subsystems.Climber;
 import frc.robot.Subsystems.Intake;
 import frc.robot.Subsystems.Shooter;
 import frc.robot.Subsystems.TeamSelector;
@@ -41,6 +43,9 @@ public class RobotContainer {
   private final Shooter m_shooter;
   private final Intake m_intake;
   private final AutoShoot m_autoshoot;
+  private final Climber m_climber;
+  //private SendableChooser<Command> autoChooser = new SendableChooser<>();
+
   //private final VisionPose m_visionpose;
 
   // Field centric drive
@@ -63,7 +68,7 @@ public class RobotContainer {
       )
     );
 
-    drivercontroller.rightBumper().whileFalse(Commands.run(() -> m_shooter.targetAngle = 205));
+    drivercontroller.rightBumper().whileFalse(Commands.run(() -> m_shooter.targetAngle = 190));
     drivercontroller.rightBumper().whileTrue(drivetrain.applyRequest(() -> 
         // Drive forward with negative Y (forward)
         drive.withVelocityX(-drivercontroller.getLeftY() * Constants.NathanSpeed)
@@ -72,10 +77,12 @@ public class RobotContainer {
           .withVelocityY(-drivercontroller.getLeftX() * Constants.NathanSpeed)
 
           // Drive counterclockwise with negative X (left)
-          .withRotationalRate(m_autoshoot.targetAll(7))
+          .withRotationalRate(m_autoshoot.targetAll(TeamSelector.getTeamColor()?4:7))
     ));
 
-    m_shooter.setDefaultCommand(new ShooterCommand(m_shooter, m_intake, () -> operatercontroller.getLeftY(), () -> operatercontroller.b().getAsBoolean(), () -> operatercontroller.y().getAsBoolean()));
+    
+    m_climber.setDefaultCommand(new ClimberCommand(m_climber, () -> operatercontroller.getLeftY()));
+    m_shooter.setDefaultCommand(new ShooterCommand(m_shooter, m_intake, () -> operatercontroller.b().getAsBoolean(), () -> operatercontroller.y().getAsBoolean()));
 
     drivercontroller.a().whileTrue(
       drivetrain.applyRequest(() -> brake)
@@ -94,7 +101,7 @@ public class RobotContainer {
 
     // reset the field-centric heading on left bumper press
     drivercontroller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
-
+    
     if (Utils.isSimulation()) {
       drivetrain.seedFieldRelative(new Pose2d(new Translation2d(), Rotation2d.fromDegrees(90)));
     }
@@ -104,19 +111,22 @@ public class RobotContainer {
 
   public RobotContainer() {
     m_shooter = new Shooter();
+    m_climber = new Climber();
     m_intake = new Intake();
     m_camera = new Camera(drivetrain);
     m_teamSelector = new TeamSelector();
     m_autoshoot = new AutoShoot(drivetrain, m_shooter, m_camera, drive);
 
     // NamedCommands.registerCommand("SpinWheels", new SpinWheels(m_shooter));
-    
+    //autoChooser.addOption("Four Piece", new FourPieceLeft(m_shooter, m_autoshoot, drivetrain.getPath("4-2 Piece"), drivetrain.getPath("4-3 Piece"), drivetrain.getPath("4-4 Piece")););
 
     configureBindings();
   }
 
   public Command getAutonomousCommand() {
-    return runAuto;
-    //return new FourPieceLeft(m_shooter, m_autoshoot, drivetrain.getPath("4-2 Piece"), drivetrain.getPath("4-3 Piece"), drivetrain.getPath("4-4 Piece"));
+    
+    // return runAuto;
+    return new FourPieceLeft(m_shooter, m_intake, m_autoshoot, drivetrain.getPath("4-2 Piece"), drivetrain.getPath("4-3 Piece"), drivetrain.getPath("4-4 Piece"));
   }
+  
 }

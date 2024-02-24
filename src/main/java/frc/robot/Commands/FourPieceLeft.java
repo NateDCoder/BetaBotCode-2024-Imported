@@ -16,34 +16,58 @@ import frc.robot.Subsystems.Shooter;
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class FourPieceLeft extends SequentialCommandGroup {
-  /** Creates a new SimpleTwoPieceAuton. */
-  public FourPieceLeft(Shooter m_shooter, Intake m_intake, AutoShoot m_autoshoot, Command path, Command path2, Command path3) {
-    // Add your commands in the addCommands() call, e.g.
-    // addCommands(new FooCommand(), new BarCommand());
-    addCommands(
-        Commands.parallel(
-            Commands.run(() -> m_shooter.setPivotAngle()),
-            Commands.startEnd(() -> m_shooter.setShooterVelocity(), () -> m_shooter.stopShooter()),
-            Commands.startEnd(() -> m_intake.feedMotorPower(0.6), () -> m_intake.feedMotorPower(0.0)),
-            Commands.race(Commands.run(() -> m_shooter.targetAngle = m_autoshoot.getTargetTagAngles(7)[0]),
-                new WaitCommand(10)),
-            Commands.sequence(
-                new WaitCommand(0.5),
+    /** Creates a new SimpleTwoPieceAuton. */
+    public FourPieceLeft(Shooter m_shooter, Intake m_intake, AutoShoot m_autoshoot, Command path, Command path2,
+            Command path3) {
+        // Add your commands in the addCommands() call, e.g.
+        // addCommands(new FooCommand(), new BarCommand());
+        addCommands(
                 Commands.parallel(
-                    Commands.run(() -> m_intake.intakeMotorPower(Constants.INTAKE_POWER)),
-                    Commands.sequence(
-                        new WaitCommand(10),
-                        Commands.race(
-                            path,
-                            Commands.run(() -> m_shooter.targetAngle = 186)),
-                        Commands.race(Commands.run(() -> m_autoshoot.targetAll(7)), new WaitCommand(10)),
-                        Commands.race(
-                            path2,
-                            Commands.run(() -> m_shooter.targetAngle = 186)),
-                        Commands.race(Commands.run(() -> m_autoshoot.targetAll(7)), new WaitCommand(10)),
-                        Commands.race(
-                            path3,
-                            Commands.run(() -> m_shooter.targetAngle = 186)),
-                        Commands.race(Commands.run(() -> m_autoshoot.targetAll(7)), new WaitCommand(5)))))));
-  }
+                        Commands.run(() -> m_shooter.setPivotAngle()),
+                        Commands.startEnd(() -> m_shooter.setShooterVelocity(), () -> m_shooter.stopShooter()),
+                        Commands.startEnd(() -> m_intake.intakeMotorPower(Constants.INTAKE_POWER),
+                                () -> m_intake.intakeMotorPower(0)),
+                        Commands.race(Commands.run(() -> m_autoshoot.targetAll(7)), new WaitCommand(2)),
+                        Commands.sequence(
+                                Commands.race(new HandleAutonShoot(m_intake, m_shooter), new WaitCommand(5)),
+                                new WaitCommand(2),
+                                Commands.parallel(
+                                        Commands.sequence(
+                                                Commands.race(
+                                                        Commands.startEnd(
+                                                                () -> m_intake.feedMotorPower(0.6),
+                                                                () -> m_intake.feedMotorPower(0.0)),
+                                                        new WaitCommand(2)),
+                                                Commands.deadline(path, new HandleAutonShoot(m_intake, m_shooter),
+                                                        Commands.run(() -> m_shooter.targetAngle = 190)),
+                                                Commands.race(new WaitCommand(2),
+                                                        Commands.run(() -> m_shooter.targetAngle = m_autoshoot
+                                                                .getTargetTagAngles(7)[0])),
+                                                Commands.race(Commands.run(() -> m_autoshoot.targetAll(7)),
+                                                        Commands.startEnd(
+                                                                () -> m_intake.feedMotorPower(0.6),
+                                                                () -> m_intake.feedMotorPower(0.0)),
+                                                        new WaitCommand(2)),
+                                                new WaitCommand(2),
+                                                Commands.deadline(path2, new HandleAutonShoot(m_intake, m_shooter),
+                                                        Commands.run(() -> m_shooter.targetAngle = 190)),
+                                                Commands.race(new WaitCommand(2),
+                                                        Commands.run(() -> m_shooter.targetAngle = m_autoshoot
+                                                                .getTargetTagAngles(7)[0])),
+                                                Commands.race(Commands.run(() -> m_autoshoot.targetAll(7)),
+                                                        Commands.startEnd(
+                                                                () -> m_intake.feedMotorPower(0.6),
+                                                                () -> m_intake.feedMotorPower(0.0)),
+                                                        new WaitCommand(2)),
+                                                Commands.deadline(path3, new HandleAutonShoot(m_intake, m_shooter),
+                                                        Commands.run(() -> m_shooter.targetAngle = 190)),
+                                                Commands.race(new WaitCommand(2),
+                                                        Commands.run(() -> m_shooter.targetAngle = m_autoshoot
+                                                                .getTargetTagAngles(7)[0])),
+                                                Commands.race(Commands.run(() -> m_autoshoot.targetAll(7)),
+                                                        Commands.startEnd(
+                                                                () -> m_intake.feedMotorPower(0.6),
+                                                                () -> m_intake.feedMotorPower(0.0)),
+                                                        new WaitCommand(2)))))));
+    }
 }

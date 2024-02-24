@@ -94,7 +94,7 @@ public class Camera extends SubsystemBase {
         SmartDashboard.putNumber("Rotation Speed to get to April Tag", tag.getYaw());
         lastYaw = tag.getYaw();
 
-        if (Math.abs(tag.getYaw()) > 3)
+        if (Math.abs(tag.getYaw()-4) > 3)
           return tag.getYaw() * -0.25;
       }
     }
