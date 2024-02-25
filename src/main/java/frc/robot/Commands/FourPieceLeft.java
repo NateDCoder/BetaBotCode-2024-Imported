@@ -29,45 +29,24 @@ public class FourPieceLeft extends SequentialCommandGroup {
                                 () -> m_intake.intakeMotorPower(0)),
                         Commands.race(Commands.run(() -> m_autoshoot.targetAll(7)), new WaitCommand(2)),
                         Commands.sequence(
-                                Commands.race(new HandleAutonShoot(m_intake, m_shooter), new WaitCommand(5)),
-                                new WaitCommand(2),
-                                Commands.parallel(
-                                        Commands.sequence(
-                                                Commands.race(
-                                                        Commands.startEnd(
-                                                                () -> m_intake.feedMotorPower(0.6),
-                                                                () -> m_intake.feedMotorPower(0.0)),
-                                                        new WaitCommand(2)),
-                                                Commands.deadline(path, new HandleAutonShoot(m_intake, m_shooter),
-                                                        Commands.run(() -> m_shooter.targetAngle = 190)),
-                                                Commands.race(new WaitCommand(2),
-                                                        Commands.run(() -> m_shooter.targetAngle = m_autoshoot
-                                                                .getTargetTagAngles(7)[0])),
-                                                Commands.race(Commands.run(() -> m_autoshoot.targetAll(7)),
-                                                        Commands.startEnd(
-                                                                () -> m_intake.feedMotorPower(0.6),
-                                                                () -> m_intake.feedMotorPower(0.0)),
-                                                        new WaitCommand(2)),
-                                                new WaitCommand(2),
-                                                Commands.deadline(path2, new HandleAutonShoot(m_intake, m_shooter),
-                                                        Commands.run(() -> m_shooter.targetAngle = 190)),
-                                                Commands.race(new WaitCommand(2),
-                                                        Commands.run(() -> m_shooter.targetAngle = m_autoshoot
-                                                                .getTargetTagAngles(7)[0])),
-                                                Commands.race(Commands.run(() -> m_autoshoot.targetAll(7)),
-                                                        Commands.startEnd(
-                                                                () -> m_intake.feedMotorPower(0.6),
-                                                                () -> m_intake.feedMotorPower(0.0)),
-                                                        new WaitCommand(2)),
-                                                Commands.deadline(path3, new HandleAutonShoot(m_intake, m_shooter),
-                                                        Commands.run(() -> m_shooter.targetAngle = 190)),
-                                                Commands.race(new WaitCommand(2),
-                                                        Commands.run(() -> m_shooter.targetAngle = m_autoshoot
-                                                                .getTargetTagAngles(7)[0])),
-                                                Commands.race(Commands.run(() -> m_autoshoot.targetAll(7)),
-                                                        Commands.startEnd(
-                                                                () -> m_intake.feedMotorPower(0.6),
-                                                                () -> m_intake.feedMotorPower(0.0)),
-                                                        new WaitCommand(2)))))));
+                                new AlignAndShoot(m_shooter, m_intake, m_autoshoot),
+                                Commands.deadline(
+                                        path,
+                                        new HandleAutonShoot(m_intake, m_shooter),
+                                        Commands.run(() -> m_shooter.targetAngle = 190)),
+                                new AlignAndShoot(m_shooter, m_intake, m_autoshoot),
+                                Commands.deadline(
+                                        path2,
+                                        new HandleAutonShoot(m_intake, m_shooter),
+                                        Commands.run(() -> m_shooter.targetAngle = 190)),
+                                new AlignAndShoot(m_shooter, m_intake, m_autoshoot),
+                                Commands.deadline(
+                                        path3,
+                                        new HandleAutonShoot(m_intake, m_shooter),
+                                        Commands.run(() -> m_shooter.targetAngle = 190)),
+                                Commands.race(new WaitCommand(2),
+                                        Commands.run(() -> m_shooter.targetAngle = m_autoshoot
+                                                .getTargetTagAngles(7)[0])),
+                                new AlignAndShoot(m_shooter, m_intake, m_autoshoot))));
     }
 }
