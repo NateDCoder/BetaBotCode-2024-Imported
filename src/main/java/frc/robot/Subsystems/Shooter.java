@@ -26,17 +26,22 @@ public class Shooter extends SubsystemBase {
 
   SparkPIDController bottomShooterPID, topShooterPID;
   PIDController pivotPID;
-
+  
   public RelativeEncoder shooterTopEncoder, shooterBottomEncoder;
   public double velocityRPM, targetAngle = 190;
-  public double p = 0.02, i = 0, d = 0, pivotFF = 0.03;
+  public double p = 0.02, i = 0, d = 0.000001, pivotFF = 0.03;
+  public double ffPower = 0.024;
+  //public double ffPower = 0.0;
 
   /** Creates a new ShooterSubsystem. */
   public Shooter() {
     topShooterPID = topShooter.getPIDController();
     bottomShooterPID = bottomShooter.getPIDController();
-
-    pivotPID = new PIDController(0.03, 0, 0);
+  
+    // Oringinal values set by Nathan.
+    // 
+    //pivotPID = new PIDController(0.02, 0.0, 0.0);
+    pivotPID = new PIDController(0.02, 0.0, 0.000001);
 
     // pivotPID.setFeedbackDevice(pivotEncoder);
     shooterTopEncoder = topShooter.getEncoder();
@@ -45,7 +50,7 @@ public class Shooter extends SubsystemBase {
     velocityRPM = 3000; // Made this number up
     configureShooterPID(topShooterPID, Constants.shooterPID);
     configureShooterPID(bottomShooterPID, Constants.shooterPID);
-
+    
     // pivotPID.setP(p);
     // pivotPID.setI(i);
     // pivotPID.setD(d);
@@ -90,6 +95,8 @@ public class Shooter extends SubsystemBase {
     // if(_targetAngle != targetAngle) {
     //   targetAngle = _targetAngle;
     // }
+    /***********************************
+    // sets the PID of angle on shooter from Smart Dashboard 
     if(_p != p) {
       p = _p;
       pivotPID.setP(p);
@@ -105,6 +112,7 @@ public class Shooter extends SubsystemBase {
     if(_ff != pivotFF) {
       pivotFF = _ff;
     }
+     ***************************************************************************/
     SmartDashboard.putNumber("Pivot Encoder", getPivotAngle());
   }
 
@@ -126,18 +134,19 @@ public class Shooter extends SubsystemBase {
   }
 
   public void setPivotAngle() {
+    
+
     SmartDashboard.putNumber("Target Angle", targetAngle);
-    if (targetAngle < 185 || targetAngle > 221) {
+    if (targetAngle < 185 || targetAngle > 223) {
       pivot.set(0);
       SmartDashboard.putNumber("Targeting an invalid value", targetAngle);
       return;
     }
 
     // This is the amount of power to keep it in a given place
-    double ffPower = 0.024;
-
+    
     double power = (pivotPID.calculate(getPivotAngle(), targetAngle)+ffPower);
-
+    
     if(getPivotAngle() < 185 && Math.signum(power)==-1) {
       SmartDashboard.putString("Trying to hit ground", "1");
       pivot.set(0);
@@ -146,6 +155,10 @@ public class Shooter extends SubsystemBase {
 
     SmartDashboard.putNumber("PID Power", Math.signum(power) * Math.min(Math.abs(power), Constants.MAX_PIVOT_POWER));
     pivot.set(Math.signum(power) * Math.min(Math.abs(power), Constants.MAX_PIVOT_POWER));
+  }
+
+  public void stopPivot() {
+    pivot.set(0.0);
   }
 
   public double getPivotAngle() {

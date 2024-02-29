@@ -21,7 +21,9 @@ public final class Constants {
     public static final int kDriverControllerPort = 0;
   }
   public static double NathanSpeed = 2;
+  public static double MAX_SPEED = 5.2;
   public static PIDFF_CONSTANTS shooterPID = new PIDFF_CONSTANTS(6e-5, 0, 0, 0.000180);
+  public static PIDFF_CONSTANTS ShooterAnglePID = new PIDFF_CONSTANTS(0.0, 0, 0, 0.0001);
 
   public static final int BOTTOM_SHOOTER_MOTOR_ID = 41;
   public static final int TOP_SHOOTER_MOTOR_ID = 42;
@@ -36,7 +38,7 @@ public final class Constants {
   public static final int CLIMB_LEFT_MOTOR_ID = 62;
   public static final int CLIMB_RIGHT_MOTOR_ID = 61;
 
-  public static final double INTAKE_POWER = 0.6;
+  public static final double INTAKE_POWER = 0.4;
 
   public static final double PIVOT_ANGLE_OFFSET = -84;
   public static final double APRIL_TAG_OFFSET = 1.01237005816; //offset before 2/21/24 5:58 PM: 1.02851778742

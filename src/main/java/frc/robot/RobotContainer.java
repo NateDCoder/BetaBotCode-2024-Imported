@@ -12,10 +12,14 @@ import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.Commands.AlignAndShoot;
 import frc.robot.Commands.AutoShoot;
+import frc.robot.Commands.CenterAuton;
 import frc.robot.Commands.ClimberCommand;
 import frc.robot.Commands.ShooterCommand;
 import frc.robot.Commands.FourPieceLeft;
@@ -44,7 +48,7 @@ public class RobotContainer {
   private final Intake m_intake;
   private final AutoShoot m_autoshoot;
   private final Climber m_climber;
-  //private SendableChooser<Command> autoChooser = new SendableChooser<>();
+  private SendableChooser<Command> autoChooser = new SendableChooser<>();
 
   //private final VisionPose m_visionpose;
 
@@ -62,42 +66,38 @@ public class RobotContainer {
   private void configureBindings() {
     drivetrain.setDefaultCommand( // Drivetrain will execute this command periodically
       drivetrain.applyRequest(() -> drive
-        .withVelocityX(drivercontroller.getLeftY() * Constants.NathanSpeed) // Drive forward with negative Y (forward)
-        .withVelocityY(drivercontroller.getLeftX() * Constants.NathanSpeed) // Drive left with negative X (left)
+        .withVelocityX(-drivercontroller.getLeftY() * Constants.MAX_SPEED) // Drive forward with negative Y (forward)
+        .withVelocityY(-drivercontroller.getLeftX() * Constants.MAX_SPEED) // Drive left with negative X (left)
         .withRotationalRate(-drivercontroller.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
       )
     );
 
-    drivercontroller.rightBumper().whileFalse(Commands.run(() -> m_shooter.targetAngle = 190));
-    drivercontroller.rightBumper().whileTrue(drivetrain.applyRequest(() -> 
-        // Drive forward with negative Y (forward)
-        drive.withVelocityX(-drivercontroller.getLeftY() * Constants.NathanSpeed)
-
-          // Drive left with negative X (left)
-          .withVelocityY(-drivercontroller.getLeftX() * Constants.NathanSpeed)
-
-          // Drive counterclockwise with negative X (left)
-          .withRotationalRate(m_autoshoot.targetAll(TeamSelector.getTeamColor()?4:7))
-    ));
+  
 
     
-    m_climber.setDefaultCommand(new ClimberCommand(m_climber, () -> operatercontroller.getLeftY()));
-    m_shooter.setDefaultCommand(new ShooterCommand(m_shooter, m_intake, () -> operatercontroller.b().getAsBoolean(), () -> operatercontroller.y().getAsBoolean()));
+      drivercontroller.rightBumper().whileFalse(Commands.run(() -> m_shooter.targetAngle = 187));
+      drivercontroller.rightBumper().whileTrue(
+        Commands.parallel(drivetrain.applyRequest(() -> 
+        drive
+          .withVelocityX(drivercontroller.getLeftY() * Constants.MAX_SPEED * (TeamSelector.getTeamColor()?-1:1)) // Drive forward with negative Y (forward)
+          .withVelocityY(drivercontroller.getLeftX() * Constants.MAX_SPEED * (TeamSelector.getTeamColor()?-1:1)) // Drive left with negative X (left)
+          .withRotationalRate(m_autoshoot.targetAll(TeamSelector.getTeamColor()?4:7, ()->operatercontroller.y().getAsBoolean())) // Drive counterclockwise with negative X (left)
+        ), Commands.runOnce(() -> drivetrain.seedFieldRelative(new Pose2d()))
+      ));
+    
+    
+    m_climber.setDefaultCommand(new ClimberCommand(m_climber, () -> operatercontroller.getLeftY(), () -> operatercontroller.getRightY()));
+    m_shooter.setDefaultCommand(new ShooterCommand(drivetrain, m_shooter, m_intake, () -> operatercontroller.b().getAsBoolean(), () -> operatercontroller.y().getAsBoolean(),() -> operatercontroller.a().getAsBoolean()));
 
     drivercontroller.a().whileTrue(
       drivetrain.applyRequest(() -> brake)
     );
 
-    drivercontroller.b().whileTrue(
-      drivetrain.applyRequest(() -> point.withModuleDirection(new Rotation2d(-drivercontroller.getLeftY(), -drivercontroller.getLeftX())))
-    );
-
-    operatercontroller.a().whileTrue(Commands.startEnd(() -> m_shooter.setShooterVelocity(), () -> m_shooter.stopShooter()));
+    operatercontroller.a().onTrue(Commands.startEnd(() -> m_shooter.setShooterVelocity(), () -> m_shooter.stopShooter()));
 
     operatercontroller.x().whileTrue(Commands.startEnd(() -> m_intake.autoIntake(), () -> m_intake.stopIntakeAndFeed()));
-    operatercontroller.leftBumper().whileTrue(Commands.startEnd(() -> m_intake.intakeMotorPower(0.6), () -> m_intake.intakeMotorPower(0.0)));
     operatercontroller.rightBumper().whileTrue(Commands.startEnd(() -> m_intake.intakeMotorPower(-0.6), () -> m_intake.intakeMotorPower(0.0)));
-    operatercontroller.b().whileTrue(Commands.startEnd(() -> m_intake.feedMotorPower(0.6), () -> m_intake.feedMotorPower(0.0)));
+    drivercontroller.b().whileTrue(Commands.startEnd(() -> m_intake.feedMotorPower(0.6), () -> m_intake.feedMotorPower(0.0)));
 
     // reset the field-centric heading on left bumper press
     drivercontroller.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldRelative()));
@@ -115,18 +115,20 @@ public class RobotContainer {
     m_intake = new Intake();
     m_camera = new Camera(drivetrain);
     m_teamSelector = new TeamSelector();
-    m_autoshoot = new AutoShoot(drivetrain, m_shooter, m_camera, drive);
+    m_autoshoot = new AutoShoot(drivetrain, m_shooter, m_camera, m_intake, drive);
 
     // NamedCommands.registerCommand("SpinWheels", new SpinWheels(m_shooter));
-    //autoChooser.addOption("Four Piece", new FourPieceLeft(m_shooter, m_autoshoot, drivetrain.getPath("4-2 Piece"), drivetrain.getPath("4-3 Piece"), drivetrain.getPath("4-4 Piece")););
-
+    autoChooser.addOption("Four Piece", new FourPieceLeft(m_shooter, m_intake, m_autoshoot, drivetrain, drivetrain.getPath("4-2a Piece"), drivetrain.getPath("4-3 Piece"), drivetrain.getPath("4-4 Piece")));
+    autoChooser.addOption("Center", new CenterAuton(m_shooter, m_intake, m_autoshoot, drivetrain, drivetrain.getPath("Center-1"), drivetrain.getPath("Center-2"), drivetrain.getPath("Center-3"), drivetrain.getPath("Center-4"), drivetrain.getPath("Center-5")));
+    SmartDashboard.putData("Auto Chooser", autoChooser);
     configureBindings();
   }
 
   public Command getAutonomousCommand() {
     
     // return runAuto;
-    return new FourPieceLeft(m_shooter, m_intake, m_autoshoot, drivetrain.getPath("4-2 Piece"), drivetrain.getPath("4-3 Piece"), drivetrain.getPath("4-4 Piece"));
+    return autoChooser.getSelected();
+    // return new CenterAuton(m_shooter, m_intake, m_autoshoot, drivetrain, drivetrain.getPath("Center-1"), drivetrain.getPath("Center-2"), drivetrain.getPath("Center-3"), drivetrain.getPath("Center-4"), drivetrain.getPath("Center-5"));
   }
   
 }

@@ -3,8 +3,10 @@ package frc.robot;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -36,25 +38,42 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
     private final SwerveRequest.ApplyChassisSpeeds autoRequest = new SwerveRequest.ApplyChassisSpeeds();
+    private final CurrentLimitsConfigs driveCurrentLimit = new CurrentLimitsConfigs()
+            .withSupplyCurrentLimitEnable(true)
+            .withSupplyCurrentLimit(60);
+    private final CurrentLimitsConfigs steerCurrentLimit = new CurrentLimitsConfigs()
+            .withSupplyCurrentLimitEnable(true)
+            .withSupplyCurrentLimit(20);
 
     // There are 2 constructors based on what you pass in
-    public CommandSwerveDrivetrain(Supplier<Boolean> teamColor, SwerveDrivetrainConstants driveTrainConstants, double OdometryUpdateFrequency,
+    public CommandSwerveDrivetrain(Supplier<Boolean> teamColor, SwerveDrivetrainConstants driveTrainConstants,
+            double OdometryUpdateFrequency,
             SwerveModuleConstants... modules) {
         super(driveTrainConstants, OdometryUpdateFrequency, modules);
         configurePathPlanner(teamColor);
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        for (SwerveModule module : Modules) {
+            module.getDriveMotor().getConfigurator().apply(driveCurrentLimit);
+            module.getSteerMotor().getConfigurator().apply(steerCurrentLimit);
+        }
     }
 
     // The second one is the one we use
-    public CommandSwerveDrivetrain(Supplier<Boolean> teamColor, SwerveDrivetrainConstants driveTrainConstants, SwerveModuleConstants... modules) {
+    public CommandSwerveDrivetrain(Supplier<Boolean> teamColor, SwerveDrivetrainConstants driveTrainConstants,
+            SwerveModuleConstants... modules) {
         super(driveTrainConstants, modules);
 
         configurePathPlanner(teamColor); // Loads the path planner config makes sure this is run before and other path
-                                // planner stuff
+        // planner stuff
         if (Utils.isSimulation()) {
             startSimThread();
+        }
+        for (SwerveModule module : Modules) {
+            module.getDriveMotor().getConfigurator().apply(driveCurrentLimit);
+            module.getSteerMotor().getConfigurator().apply(steerCurrentLimit);
+
         }
     }
 
@@ -85,7 +104,6 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         }
     }
 
-    
     private void configurePathPlanner(Supplier<Boolean> teamColor) {
         double driveBaseRadius = 0;
         for (var moduleLocation : m_moduleLocations) {
@@ -118,6 +136,11 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     public Command getPath(String pathName) {
         PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
         return AutoBuilder.followPath(path);
+    }
+
+    public Pose2d getStartingPath(String pathName) {
+        PathPlannerPath path = PathPlannerPath.fromPathFile(pathName);
+        return path.getPreviewStartingHolonomicPose();
     }
 
     public ChassisSpeeds getCurrentRobotChassisSpeeds() {

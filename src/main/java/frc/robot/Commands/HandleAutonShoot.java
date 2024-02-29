@@ -30,10 +30,12 @@ public class HandleAutonShoot extends Command {
   @Override
   public void execute() {
     if(intake.irSensor.get()) {
-      intake.feedMotorPower(0.6);
+      intake.feedMotorPower(0.5);
+      intake.intakeMotorPower(Constants.INTAKE_POWER);
     }else {
       isNote = true;
-      intake.feedMotorPower(-0.1);
+      intake.feedMotorPower(0.0);
+      intake.intakeMotorPower(0.0);
     }
 
   }
@@ -42,6 +44,7 @@ public class HandleAutonShoot extends Command {
   @Override
   public void end(boolean interrupted) {
     intake.feedMotorPower(0);
+    intake.intakeMotorPower(0.0);
   }
 
   // Returns true when the command should end.

@@ -1,6 +1,8 @@
 package frc.robot.generated;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstantsFactory;
@@ -15,7 +17,6 @@ import frc.robot.Subsystems.TeamSelector;
 // https://v6.docs.ctr-electronics.com/en/stable/docs/tuner/tuner-swerve/index.html
 public class TunerConstants {
     // Both sets of gains need to be tuned to your individual robot.
-
     // The steer motor uses any SwerveModule.SteerRequestType control request with the
     // output type specified by SwerveModuleConstants.SteerMotorClosedLoopOutput
     private static final Slot0Configs steerGains = new Slot0Configs()
@@ -88,11 +89,12 @@ public class TunerConstants {
             .withSteerMotorInverted(kSteerMotorReversed);
 
 
+
     // Front Left
     private static final int kFrontLeftDriveMotorId = 28;
     private static final int kFrontLeftSteerMotorId = 27;
     private static final int kFrontLeftEncoderId = 14;
-    private static final double kFrontLeftEncoderOffset = 0.38720703125;
+    private static final double kFrontLeftEncoderOffset = 0.43359375;
 
     private static final double kFrontLeftXPosInches = 10.25;
     private static final double kFrontLeftYPosInches = 10.25;
@@ -101,7 +103,7 @@ public class TunerConstants {
     private static final int kFrontRightDriveMotorId = 22;
     private static final int kFrontRightSteerMotorId = 21;
     private static final int kFrontRightEncoderId = 11;
-    private static final double kFrontRightEncoderOffset = 0.4912109375;
+    private static final double kFrontRightEncoderOffset = 0.497314453125;
 
     private static final double kFrontRightXPosInches = 10.25;
     private static final double kFrontRightYPosInches = -10.25;
@@ -110,7 +112,7 @@ public class TunerConstants {
     private static final int kBackLeftDriveMotorId = 26;
     private static final int kBackLeftSteerMotorId = 25;
     private static final int kBackLeftEncoderId = 13;
-    private static final double kBackLeftEncoderOffset = -0.462158203125;
+    private static final double kBackLeftEncoderOffset = -0.435302734375;
 
     private static final double kBackLeftXPosInches = -10.25;
     private static final double kBackLeftYPosInches = 10.25;
@@ -119,7 +121,7 @@ public class TunerConstants {
     private static final int kBackRightDriveMotorId = 24;
     private static final int kBackRightSteerMotorId = 23;
     private static final int kBackRightEncoderId = 12;
-    private static final double kBackRightEncoderOffset = -0.087890625;
+    private static final double kBackRightEncoderOffset = -0.088623046875;
 
     private static final double kBackRightXPosInches = -10.25;
     private static final double kBackRightYPosInches = -10.25;

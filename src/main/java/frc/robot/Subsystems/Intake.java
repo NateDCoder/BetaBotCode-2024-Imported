@@ -10,6 +10,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkBase.IdleMode;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -20,12 +21,13 @@ public class Intake extends SubsystemBase {
   boolean run;
 
   public DigitalInput irSensor = new DigitalInput(1);
-  CANSparkMax  feedMotor   = new CANSparkMax(Constants.FEED_MOTOR_ID, MotorType.kBrushless);
-  CANSparkMax  guideLeft   = new CANSparkMax(Constants.GUIDE_LEFT_MOTOR_ID, MotorType.kBrushless);
-  CANSparkMax  guideRight  = new CANSparkMax(Constants.GUIDE_RIGHT_MOTOR_ID, MotorType.kBrushless);
+  CANSparkMax feedMotor = new CANSparkMax(Constants.FEED_MOTOR_ID, MotorType.kBrushless);
+  CANSparkMax guideLeft = new CANSparkMax(Constants.GUIDE_LEFT_MOTOR_ID, MotorType.kBrushless);
+  CANSparkMax guideRight = new CANSparkMax(Constants.GUIDE_RIGHT_MOTOR_ID, MotorType.kBrushless);
   CANSparkFlex intakeMotor = new CANSparkFlex(Constants.INTAKE_MOTOR_ID, MotorType.kBrushless);
 
   boolean robotRunning;
+
   /** Creates a new Intake. */
   public Intake() {
     feedMotor.setIdleMode(IdleMode.kCoast);
@@ -72,6 +74,9 @@ public class Intake extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putBoolean("Note In Shooter", !irSensor.get());
-    updateAutoIntake();
+    SmartDashboard.putBoolean("Run Teleop Intake", run);
+    if (RobotState.isTeleop()) {
+      updateAutoIntake();
+    }
   }
 }

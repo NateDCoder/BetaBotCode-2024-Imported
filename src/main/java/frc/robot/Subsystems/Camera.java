@@ -37,7 +37,7 @@ public class Camera extends SubsystemBase {
     camera = new PhotonCamera("AprilTagsCamera");
 
     Transform3d robotToCam = new Transform3d(
-      new Translation3d(-0.34, -.17, 0.18), 
+      new Translation3d(-0.34, .22, 0.18), 
       new Rotation3d(Math.toDegrees(0), 
       Math.toRadians(-33), Math.toRadians(180))
     ); // Cam mounted facing forward, half a meter forward of center, half a meter up from center.

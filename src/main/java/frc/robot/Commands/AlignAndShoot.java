@@ -7,6 +7,7 @@ package frc.robot.Commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Subsystems.Intake;
 import frc.robot.Subsystems.Shooter;
+import frc.robot.Subsystems.TeamSelector;
 
 public class AlignAndShoot extends Command {
   /** Creates a new AlignAndShoot. */
@@ -14,35 +15,47 @@ public class AlignAndShoot extends Command {
   Intake m_intake;
   AutoShoot m_autoshoot;
   boolean isAligned;
+  boolean reachPivot;
+
   public AlignAndShoot(Shooter shooter, Intake intake, AutoShoot autoshoot) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.m_shooter = shooter;
     this.m_intake = intake;
     this.m_autoshoot = autoshoot;
     isAligned = false;
+    reachPivot = false;
     addRequirements(m_shooter);
     addRequirements(m_intake);
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    isAligned = false;
+    reachPivot = false;
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    m_autoshoot.targetAll(7);
-    if(Math.abs(m_shooter.targetAngle-m_shooter.getPivotAngle()) < 1) {
-      m_intake.feedMotorPower(0.6);
-      isAligned = true;
-    }else {
+    m_autoshoot.targetAll(TeamSelector.getTeamColor() ? 4 : 7);
+    if (Math.abs(m_shooter.targetAngle - m_shooter.getPivotAngle()) < 0.3) {
+      m_intake.feedMotorPower(0.5);
+      reachPivot = true;
+    } else if(!reachPivot) {
       m_intake.feedMotorPower(0);
+    }
+    if (m_intake.irSensor.get()&&reachPivot) {
+      isAligned = true;
     }
   }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    m_intake.feedMotorPower(0);
+
+  }
 
   // Returns true when the command should end.
   @Override

@@ -12,12 +12,13 @@ import frc.robot.Subsystems.Climber;
 
 public class ClimberCommand extends Command {
   /** Creates a new ClimberCommand. */
-  Supplier<Double> leftYSupplier;
+  Supplier<Double> leftYSupplier, rightYSupplier;
   Climber climber;
 
-  public ClimberCommand(Climber climber, Supplier<Double> leftYSupplier) {
+  public ClimberCommand(Climber climber, Supplier<Double> leftYSupplier, Supplier<Double> rightYSupplier) {
     addRequirements(climber);
     this.leftYSupplier = leftYSupplier;
+    this.rightYSupplier = rightYSupplier;
     this.climber = climber;
   }
 
@@ -32,7 +33,7 @@ public class ClimberCommand extends Command {
     if (RobotState.isTeleop()) {
       if (Math.abs(leftYSupplier.get()) > 0.1) {
         climber.setLeftClimb(leftYSupplier.get() * 0.2);
-        climber.setRightClimb(leftYSupplier.get() * 0.2);
+        climber.setRightClimb(rightYSupplier.get() * 0.2);
       }
     }
   }
@@ -40,6 +41,8 @@ public class ClimberCommand extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
+    climber.setLeftClimb(0);
+    climber.setRightClimb(0);
   }
 
   // Returns true when the command should end.
