@@ -13,13 +13,15 @@ import frc.robot.Subsystems.Climber;
 public class ClimberCommand extends Command {
   /** Creates a new ClimberCommand. */
   Supplier<Double> leftYSupplier, rightYSupplier;
+  Supplier<Boolean> leftTriggerSupplier;
   Climber climber;
 
-  public ClimberCommand(Climber climber, Supplier<Double> leftYSupplier, Supplier<Double> rightYSupplier) {
+  public ClimberCommand(Climber climber, Supplier<Double> leftYSupplier, Supplier<Double> rightYSupplier, Supplier<Boolean> leftTriggerSupplier) {
     addRequirements(climber);
     this.leftYSupplier = leftYSupplier;
     this.rightYSupplier = rightYSupplier;
     this.climber = climber;
+    this.leftTriggerSupplier = leftTriggerSupplier;
   }
 
   // Called when the command is initially scheduled.
@@ -31,10 +33,12 @@ public class ClimberCommand extends Command {
   @Override
   public void execute() {
     if (RobotState.isTeleop()) {
-      if (Math.abs(leftYSupplier.get()) > 0.1) {
-        climber.setLeftClimb(leftYSupplier.get() * 0.2);
-        climber.setRightClimb(rightYSupplier.get() * 0.2);
+      // if lefty is above or below deadband and the driver is pressing b run the climbers based on operator input
+      if (Math.abs(leftYSupplier.get()) > 0.1 && leftTriggerSupplier.get()) {
+        climber.setLeftClimb(rightYSupplier.get() * 0.2);
+        climber.setRightClimb(leftYSupplier.get() * 0.2);
       }
+
     }
   }
 

@@ -4,15 +4,11 @@
 
 package frc.robot.Commands;
 
-import com.pathplanner.lib.path.PathPlannerPath;
-
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.CommandSwerveDrivetrain;
-import frc.robot.Constants;
 import frc.robot.Subsystems.Intake;
 import frc.robot.Subsystems.Shooter;
 import frc.robot.Subsystems.TeamSelector;
@@ -29,22 +25,22 @@ public class FourPieceLeft extends SequentialCommandGroup {
         addCommands(
                 Commands.runOnce(() -> m_drivetrain.seedFieldRelative(TeamSelector.getTeamColor()?m_drivetrain.getStartingPath("4-2a Red Piece"):m_drivetrain.getStartingPath("4-2a Piece"))),
                 Commands.parallel(
-                        Commands.startEnd(() -> m_shooter.setPivotAngle(), () -> m_shooter.stopPivot()),
+                        Commands.run(() -> m_shooter.setPivotAngle()),
                         Commands.startEnd(() -> m_shooter.setShooterVelocity(), () -> m_shooter.stopShooter()),
-                        Commands.race(Commands.run(() -> m_autoshoot.targetAll(TeamSelector.getTeamColor()?4:7)), new WaitCommand(2)),
+                        Commands.race(Commands.run(() -> m_autoshoot.targetAuton(TeamSelector.getTeamColor()?4:7)), new WaitCommand(2)),
                         Commands.sequence(
                                 new AlignAndShoot(m_shooter, m_intake, m_autoshoot),
-                                Commands.parallel(
-                                        Commands.race(path, Commands.run(() -> m_shooter.targetAngle = 190)),
+                                Commands.deadline(
+                                        Commands.race(Commands.sequence(path, new WaitCommand(1.25)), Commands.run(() -> m_shooter.targetAngle = 190)),
                                         new HandleAutonShoot(m_intake, m_shooter)),
                                         
                                 new AlignAndShoot(m_shooter, m_intake, m_autoshoot),
-                                Commands.parallel(
-                                        Commands.race(path2, Commands.run(() -> m_shooter.targetAngle = 190)),
+                                Commands.deadline(
+                                        Commands.race(Commands.sequence(path2, new WaitCommand(0.5)), Commands.run(() -> m_shooter.targetAngle = 190)),
                                         new HandleAutonShoot(m_intake, m_shooter)),
                                 new AlignAndShoot(m_shooter, m_intake, m_autoshoot),
-                                Commands.parallel(
-                                        Commands.race(path3, Commands.run(() -> m_shooter.targetAngle = 190)),
+                                Commands.deadline(
+                                        Commands.race(Commands.sequence(path3, new WaitCommand(0.5)), Commands.run(() -> m_shooter.targetAngle = 190)),
                                         new HandleAutonShoot(m_intake, m_shooter)),
                                 new WaitCommand(1),
                                 Commands.race(new WaitCommand(2),

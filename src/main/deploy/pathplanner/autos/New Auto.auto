@@ -1,0 +1,37 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 0.8,
+      "y": 3.84
+    },
+    "rotation": 0
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Suprise-1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Suprise-2"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Suprise-3"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}

@@ -11,11 +11,9 @@ import com.revrobotics.CANSparkBase.IdleMode;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotState;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Robot;
 
 public class Intake extends SubsystemBase {
   boolean run;
@@ -30,7 +28,7 @@ public class Intake extends SubsystemBase {
 
   /** Creates a new Intake. */
   public Intake() {
-    feedMotor.setIdleMode(IdleMode.kCoast);
+    feedMotor.setIdleMode(IdleMode.kBrake);
   }
 
   public void feedMotorPower(double power) {
@@ -50,7 +48,7 @@ public class Intake extends SubsystemBase {
   public void updateAutoIntake() {
     if (run) {
       if (irSensor.get()) {
-        feedMotor.set(0.5);
+        feedMotor.set(Constants.FEED_POWER);
         intakeMotor.set(Constants.INTAKE_POWER);
         guideLeft.set(Constants.INTAKE_POWER);
         guideRight.set(-Constants.INTAKE_POWER);

@@ -15,14 +15,14 @@ import frc.robot.Subsystems.TeamSelector;
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
-public class CenterAuton extends SequentialCommandGroup {
-    /** Creates a new SimpleTwoPieceAuton. */
-    public CenterAuton(Shooter m_shooter, Intake m_intake, AutoShoot m_autoshoot, CommandSwerveDrivetrain m_drivetrain, Command path, Command path2,
-            Command path3, Command path4, Command path5) {
+public class Suprise extends SequentialCommandGroup {
+  /** Creates a new Suprise. */
+  public Suprise(Shooter m_shooter, Intake m_intake, AutoShoot m_autoshoot, CommandSwerveDrivetrain m_drivetrain, Command path, Command path2,
+            Command path3) {
         // Add your commands in the addCommands() call, e.g.
         // addCommands(new FooCommand(), new BarCommand());
         addCommands(
-                Commands.runOnce(() -> m_drivetrain.seedFieldRelative(TeamSelector.getTeamColor()?m_drivetrain.getStartingPath("Center-1 Red"):m_drivetrain.getStartingPath("Center-1"))),
+                Commands.runOnce(() -> m_drivetrain.seedFieldRelative(TeamSelector.getTeamColor()?m_drivetrain.getStartingPath("Suprise-1 Red"):m_drivetrain.getStartingPath("Suprise-1"))),
                 Commands.parallel(
                         Commands.run(() -> m_shooter.setPivotAngle()),
                         Commands.startEnd(() -> m_shooter.setShooterVelocity(), () -> m_shooter.stopShooter()),
@@ -36,22 +36,12 @@ public class CenterAuton extends SequentialCommandGroup {
                                         path2,
                                         Commands.sequence(new HandleAutonShoot(m_intake, m_shooter), new HandleAutonShoot(m_intake, m_shooter)),
                                         Commands.run(() -> m_shooter.targetAngle = 187)),
-                                // Commands.race(new WaitCommand(0.1), Commands.startEnd(()-> m_intake.feedMotorPower(0.5), ()-> m_intake.feedMotorPower(0))),
-                                // Commands.deadline(
-                                //         path3,
-                                //         new HandleAutonShoot(m_intake, m_shooter),
-                                //         Commands.run(() -> m_shooter.targetAngle = 187)),
                                 new AlignAndShoot(m_shooter, m_intake, m_autoshoot),
                                 Commands.deadline(
-                                        path4,
+                                        path3,
                                         new HandleAutonShoot(m_intake, m_shooter),
                                         Commands.run(() -> m_shooter.targetAngle = 187)),
-                                new AlignAndShoot(m_shooter, m_intake, m_autoshoot),
-                                Commands.deadline(
-                                        path5,
-                                        new HandleAutonShoot(m_intake, m_shooter),
-                                        Commands.run(() -> m_shooter.targetAngle = 187))
-                                )
-                                ));
+                                new AlignAndShoot(m_shooter, m_intake, m_autoshoot)
+                                )));
     }
 }

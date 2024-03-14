@@ -20,7 +20,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.CommandSwerveDrivetrain;
@@ -48,6 +47,8 @@ public class Camera extends SubsystemBase {
       fieldLayout, 
       PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, 
       camera,
+
+      
       robotToCam
     );
 
@@ -110,5 +111,6 @@ public class Camera extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     setDefaultCommand(new VisionPose(swerve, this));
+    SmartDashboard.putNumber("Amount of tags detected", getLatestResult().targets.size());
   }
 }

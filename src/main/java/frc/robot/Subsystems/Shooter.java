@@ -26,22 +26,25 @@ public class Shooter extends SubsystemBase {
 
   SparkPIDController bottomShooterPID, topShooterPID;
   PIDController pivotPID;
-  
+
   public RelativeEncoder shooterTopEncoder, shooterBottomEncoder;
   public double velocityRPM, targetAngle = 190;
-  public double p = 0.02, i = 0, d = 0.000001, pivotFF = 0.03;
+  public double p = 6e-5, i = 0, d = 0, pivotFF = 0.000180;
   public double ffPower = 0.024;
-  //public double ffPower = 0.0;
+  // public double ffPower = 0.0;
+  public boolean enableShooter = false;
+
+  // public double tempTargetAngle = 190;
 
   /** Creates a new ShooterSubsystem. */
   public Shooter() {
     topShooterPID = topShooter.getPIDController();
     bottomShooterPID = bottomShooter.getPIDController();
-  
+
     // Oringinal values set by Nathan.
-    // 
-    //pivotPID = new PIDController(0.02, 0.0, 0.0);
-    pivotPID = new PIDController(0.02, 0.0, 0.000001);
+    //
+    // pivotPID = new PIDController(0.02, 0.0, 0.0);
+    pivotPID = new PIDController(0.02, 0.00001, 0.000001);
 
     // pivotPID.setFeedbackDevice(pivotEncoder);
     shooterTopEncoder = topShooter.getEncoder();
@@ -50,19 +53,21 @@ public class Shooter extends SubsystemBase {
     velocityRPM = 3000; // Made this number up
     configureShooterPID(topShooterPID, Constants.shooterPID);
     configureShooterPID(bottomShooterPID, Constants.shooterPID);
-    
+
     // pivotPID.setP(p);
     // pivotPID.setI(i);
     // pivotPID.setD(d);
 
-    SmartDashboard.putNumber("P Angle", p);
-    SmartDashboard.putNumber("I Angle", i);
-    SmartDashboard.putNumber("D Angle", d);
-    SmartDashboard.putNumber("FF Angle", pivotFF);
+    // SmartDashboard.putNumber("P Angle", p);
+    // SmartDashboard.putNumber("I Angle", i);
+    // SmartDashboard.putNumber("D Angle", d);
+    // SmartDashboard.putNumber("FF Angle", pivotFF);
 
     SmartDashboard.putNumber("Velocity", velocityRPM);
     SmartDashboard.putNumber("Target Angle", targetAngle);
-
+    // SmartDashboard.putNumber("Velocity", tempVelocityRPM);
+    // SmartDashboard.putNumber("Target Angle", tempTargetAngle);
+    enableShooter = false;
   }
 
   public void setTargetAngle(double tAngle) {
@@ -86,68 +91,97 @@ public class Shooter extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler
     // double _targetAngle = SmartDashboard.getNumber("Target Angle", 0.0);
-    double _p = SmartDashboard.getNumber("P Angle", 0.0);
-    double _i = SmartDashboard.getNumber("I Angle", 0.0);
-    double _d = SmartDashboard.getNumber("D Angle", 0.0);
-    double _ff = SmartDashboard.getNumber("FF Angle", 0.0);
+    // double _velocity = SmartDashboard.getNumber("Velocity", 0.0);
+
+    // double _p = SmartDashboard.getNumber("P Angle", 0.0);
+    // double _i = SmartDashboard.getNumber("I Angle", 0.0);
+    // double _d = SmartDashboard.getNumber("D Angle", 0.0);
+    // double _ff = SmartDashboard.getNumber("FF Angle", 0.0);
     SmartDashboard.putNumber("Top Speed", shooterTopEncoder.getVelocity());
     SmartDashboard.putNumber("Bottom Speed", shooterBottomEncoder.getVelocity());
-    // if(_targetAngle != targetAngle) {
-    //   targetAngle = _targetAngle;
+    // if (_targetAngle != tempTargetAngle) {
+    //   tempTargetAngle = _targetAngle;
+    // }
+    // if (_velocity != tempVelocityRPM) {
+    //   tempVelocityRPM = _velocity;
     // }
     /***********************************
-    // sets the PID of angle on shooter from Smart Dashboard 
-    if(_p != p) {
-      p = _p;
-      pivotPID.setP(p);
-    }
-    if(_i != i) {
-      i = _i;
-      pivotPID.setI(i);
-    }
-    if(_d != d) {
-      d = _d;
-      pivotPID.setD(d);
-    }
-    if(_ff != pivotFF) {
-      pivotFF = _ff;
-    }
+     * // sets the PID of angle on shooter from Smart Dashboard
+     * if(_p != p) {
+     * p = _p;
+     * pivotPID.setP(p);
+     * }
+     * if(_i != i) {
+     * i = _i;
+     * pivotPID.setI(i);
+     * }
+     * if(_d != d) {
+     * d = _d;
+     * pivotPID.setD(d);
+     * }
+     * if(_ff != pivotFF) {
+     * pivotFF = _ff;
+     * }
      ***************************************************************************/
+    // if (_p != p) {
+    //   p = _p;
+    //   pivotPID.setP(p);
+    // }
+    // if (_i != i) {
+    //   i = _i;
+    //   pivotPID.setI(i);
+    // }
+    // if (_d != d) {
+    //   d = _d;
+    //   pivotPID.setD(d);
+    // }
+    // if (_ff != pivotFF) {
+    //   pivotFF = _ff;
+    // }
     SmartDashboard.putNumber("Pivot Encoder", getPivotAngle());
   }
 
   public void setShooterVelocity() {
-    topShooterPID.setReference(velocityRPM, CANSparkFlex.ControlType.kVelocity);
-    bottomShooterPID.setReference(-velocityRPM, CANSparkFlex.ControlType.kVelocity);
+    // topShooterPID.setReference(velocityRPM, CANSparkFlex.ControlType.kVelocity);
+    // bottomShooterPID.setReference(-velocityRPM,
+    // CANSparkFlex.ControlType.kVelocity);
 
+    topShooterPID.setReference(velocityRPM, CANSparkFlex.ControlType.kVelocity);
+    bottomShooterPID.setReference(-velocityRPM * 0.8, CANSparkFlex.ControlType.kVelocity);
     SmartDashboard.putNumber("Target", velocityRPM);
     SmartDashboard.putNumber("Actual Top", shooterTopEncoder.getVelocity());
     SmartDashboard.putNumber("Actual Bottom", shooterBottomEncoder.getVelocity());
     SmartDashboard.putNumber("Difference of Shooter",
         shooterTopEncoder.getVelocity() - Math.abs(shooterBottomEncoder.getVelocity()));
-    
+
   }
 
   public void stopShooter() {
-    topShooterPID.setReference(0.0, CANSparkMax.ControlType.kVelocity);
-    bottomShooterPID.setReference(0.0, CANSparkFlex.ControlType.kVelocity);
+    // topShooterPID.setReference(0.0, CANSparkMax.ControlType.kVelocity);
+    // bottomShooterPID.setReference(0.0, CANSparkFlex.ControlType.kVelocity);
+    topShooter.set(0);
+    bottomShooter.set(0);
   }
 
   public void setPivotAngle() {
-    
-
     SmartDashboard.putNumber("Target Angle", targetAngle);
-    if (targetAngle < 185 || targetAngle > 223) {
-      pivot.set(0);
-      SmartDashboard.putNumber("Targeting an invalid value", targetAngle);
-      return;
+    if (targetAngle < 185 || targetAngle > 223 || getPivotAngle() > 223) {
+    pivot.set(0);
+    SmartDashboard.putNumber("Targeting an invalid value", targetAngle);
+    return;
     }
+    // if (tempTargetAngle < 185 || tempTargetAngle > 223 || getPivotAngle() > 223) {
+    //   pivot.set(0);
+    //   SmartDashboard.putNumber("Targeting an invalid value", targetAngle);
+    //   return;
+    // }
 
     // This is the amount of power to keep it in a given place
-    
-    double power = (pivotPID.calculate(getPivotAngle(), targetAngle)+ffPower);
-    
-    if(getPivotAngle() < 185 && Math.signum(power)==-1) {
+
+    double power = (pivotPID.calculate(getPivotAngle(), targetAngle) + ffPower);
+    // double power = (pivotPID.calculate(getPivotAngle(), tempTargetAngle) + ffPower);
+
+    if (getPivotAngle() < 185 && Math.signum(power) == -1) {
       SmartDashboard.putString("Trying to hit ground", "1");
       pivot.set(0);
       return;

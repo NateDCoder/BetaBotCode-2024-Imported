@@ -9,7 +9,6 @@ import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Commands.ClimberCommand;
 
 public class Climber extends SubsystemBase {
   //61 right 62 left

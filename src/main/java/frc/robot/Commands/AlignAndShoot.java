@@ -38,7 +38,7 @@ public class AlignAndShoot extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    m_autoshoot.targetAll(TeamSelector.getTeamColor() ? 4 : 7);
+    m_autoshoot.targetAuton(TeamSelector.getTeamColor() ? 4 : 7);
     if (Math.abs(m_shooter.targetAngle - m_shooter.getPivotAngle()) < 0.3) {
       m_intake.feedMotorPower(0.5);
       reachPivot = true;

@@ -30,7 +30,7 @@ public class HandleAutonShoot extends Command {
   @Override
   public void execute() {
     if(intake.irSensor.get()) {
-      intake.feedMotorPower(0.5);
+      intake.feedMotorPower(Constants.FEED_POWER);
       intake.intakeMotorPower(Constants.INTAKE_POWER);
     }else {
       isNote = true;

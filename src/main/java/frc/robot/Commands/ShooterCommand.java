@@ -7,18 +7,12 @@ package frc.robot.Commands;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.RobotState;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.CommandSwerveDrivetrain;
-import frc.robot.Constants;
 import frc.robot.Subsystems.Intake;
 import frc.robot.Subsystems.Shooter;
-import frc.robot.generated.TunerConstants;
 
 public class ShooterCommand extends Command {
   /** Creates a new ShooterCommand. */
@@ -31,7 +25,8 @@ public class ShooterCommand extends Command {
   private final XboxController drivercontroller = new XboxController(0);
   CommandSwerveDrivetrain m_drivetrain;
 
-  public ShooterCommand(CommandSwerveDrivetrain drivetrain, Shooter shooter, Intake intake, Supplier<Boolean> bButtonSupplier, Supplier<Boolean> yButtonSupplier, Supplier<Boolean> aButtonSupplier) {
+  public ShooterCommand(CommandSwerveDrivetrain drivetrain, Shooter shooter, Intake intake,
+      Supplier<Boolean> bButtonSupplier, Supplier<Boolean> yButtonSupplier, Supplier<Boolean> aButtonSupplier) {
     this.m_drivetrain = drivetrain;
     this.shooter = shooter;
     this.intake = intake;
@@ -48,7 +43,8 @@ public class ShooterCommand extends Command {
   @Override
   public void initialize() {
     shooter.targetAngle = 187;
-  } 
+    shooter.enableShooter = false;
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
@@ -58,12 +54,17 @@ public class ShooterCommand extends Command {
         if (!rightTriggerDebounce) {
           rightTriggerDebounce = true;
           m_drivetrain.seedFieldRelative(new Pose2d());
-          
+
         }
       } else {
         rightTriggerDebounce = false;
       }
       shooter.setPivotAngle();
+      if (shooter.enableShooter) {
+        shooter.setShooterVelocity();
+      }else {
+        shooter.stopShooter();
+      }
     }
   }
 
@@ -71,7 +72,7 @@ public class ShooterCommand extends Command {
   @Override
   public void end(boolean interrupted) {
     intake.intakeMotorPower(0);
-    shooter.stopPivot();
+    shooter.stopShooter();
   }
 
   // Returns true when the command should end.
