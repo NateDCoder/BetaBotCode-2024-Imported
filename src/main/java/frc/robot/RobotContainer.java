@@ -21,7 +21,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Commands.AutoShoot;
 import frc.robot.Commands.CenterAuton;
 import frc.robot.Commands.ClimberCommand;
-import frc.robot.Commands.ShooterCommand;
 import frc.robot.Commands.FourPieceLeft;
 import frc.robot.Commands.HandleAutonShoot;
 import frc.robot.Subsystems.Camera;
@@ -83,7 +82,6 @@ public class RobotContainer {
     
     
     m_climber.setDefaultCommand(new ClimberCommand(m_climber, () -> operatercontroller.getLeftY(), () -> operatercontroller.getRightY(), () -> drivercontroller.leftTrigger(0.5).getAsBoolean()));
-    m_shooter.setDefaultCommand(new ShooterCommand(drivetrain, m_shooter, m_intake, () -> operatercontroller.b().getAsBoolean(), () -> operatercontroller.y().getAsBoolean(),() -> operatercontroller.a().getAsBoolean()));
 
     drivercontroller.a().whileTrue(
       drivetrain.applyRequest(() -> brake)
