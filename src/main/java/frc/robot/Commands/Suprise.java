@@ -31,17 +31,17 @@ public class Suprise extends SequentialCommandGroup {
                                         path,
                                         new HandleAutonShoot(m_intake, m_shooter),
                                         Commands.run(() -> m_shooter.targetAngle = 187)),
-                                new AlignAndShoot(m_shooter, m_intake, m_autoshoot),
+                                new AlignAndShoot(m_shooter, m_intake, m_autoshoot, m_drivetrain),
                                 Commands.deadline(
                                         path2,
                                         Commands.sequence(new HandleAutonShoot(m_intake, m_shooter), new HandleAutonShoot(m_intake, m_shooter)),
                                         Commands.run(() -> m_shooter.targetAngle = 187)),
-                                new AlignAndShoot(m_shooter, m_intake, m_autoshoot),
+                                new AlignAndShoot(m_shooter, m_intake, m_autoshoot, m_drivetrain),
                                 Commands.deadline(
                                         path3,
                                         new HandleAutonShoot(m_intake, m_shooter),
                                         Commands.run(() -> m_shooter.targetAngle = 187)),
-                                new AlignAndShoot(m_shooter, m_intake, m_autoshoot)
+                                new AlignAndShoot(m_shooter, m_intake, m_autoshoot, m_drivetrain)
                                 )));
     }
 }

@@ -16,7 +16,8 @@ public class ClimberCommand extends Command {
   Supplier<Boolean> leftTriggerSupplier;
   Climber climber;
 
-  public ClimberCommand(Climber climber, Supplier<Double> leftYSupplier, Supplier<Double> rightYSupplier, Supplier<Boolean> leftTriggerSupplier) {
+  public ClimberCommand(Climber climber, Supplier<Double> leftYSupplier, Supplier<Double> rightYSupplier,
+      Supplier<Boolean> leftTriggerSupplier) {
     addRequirements(climber);
     this.leftYSupplier = leftYSupplier;
     this.rightYSupplier = rightYSupplier;
@@ -33,10 +34,21 @@ public class ClimberCommand extends Command {
   @Override
   public void execute() {
     if (RobotState.isTeleop()) {
-      // if lefty is above or below deadband and the driver is pressing b run the climbers based on operator input
-      if (Math.abs(leftYSupplier.get()) > 0.1 && leftTriggerSupplier.get()) {
-        climber.setLeftClimb(rightYSupplier.get() * 0.2);
-        climber.setRightClimb(leftYSupplier.get() * 0.2);
+      // if lefty is above or below deadband and the driver is pressing b run the
+      // climbers based on operator input
+      if (rightYSupplier.get() < 0 && leftTriggerSupplier.get()) {
+        climber.setLeftClimb(-rightYSupplier.get() * 0.5);
+      } else if (rightYSupplier.get() > 0) {
+        climber.setLeftClimb(-rightYSupplier.get() * 0.5);
+      } else {
+        climber.setLeftClimb(0);
+      }
+      if (leftYSupplier.get() < 0 && leftTriggerSupplier.get()) {
+        climber.setRightClimb(-leftYSupplier.get() * 0.5);
+      } else if (leftYSupplier.get() > 0) {
+        climber.setRightClimb(-leftYSupplier.get() * 0.5);
+      } else {
+        climber.setRightClimb(0);
       }
 
     }

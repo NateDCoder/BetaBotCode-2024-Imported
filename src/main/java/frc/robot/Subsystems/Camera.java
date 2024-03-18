@@ -4,6 +4,8 @@
 
 package frc.robot.Subsystems;
 
+import java.io.IOError;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,48 +18,67 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.CommandSwerveDrivetrain;
 import frc.robot.Commands.VisionPose;
+import frc.robot.generated.TunerConstants;
 
 // Handle the camera and vision pipeline 1/27/24 -Nathan
 public class Camera extends SubsystemBase {
-  PhotonCamera camera;
-  PhotonPoseEstimator photonPoseEstimator;
+  // Nathan instead of doing -20, I put in 340 which is 360 - 20...
+  private static final Transform3d BACK_RIGHT_CAMERA_TO_CENTER = new Transform3d(
+      new Translation3d(-0.04, -.22, 0.20),
+      new Rotation3d(Math.toDegrees(0),
+          Math.toRadians(-33), Math.toRadians(200)));
+  private static final Transform3d BACK_LEFT_CAMERA_TO_CENTER = new Transform3d(
+      new Translation3d(-0.34, .22, 0.20),
+      new Rotation3d(Math.toDegrees(0),
+          Math.toRadians(-33), Math.toRadians(160)));
+  // PhotonCamera camera;
+
+  // PhotonPoseEstimator photonPoseEstimator;
+
+  private PhotonCamera camRight;
+  private PhotonCamera camLeft;
+  public final PhotonPoseEstimator photonPoseEstimatorRight;
+  public final PhotonPoseEstimator photonPoseEstimatorLeft;
+  CommandSwerveDrivetrain drivetrain;
+
   /** Creates a new Camera. */
-  CommandSwerveDrivetrain swerve;
-
-  public Camera(CommandSwerveDrivetrain swerve) {
-    camera = new PhotonCamera("AprilTagsCamera");
-
-    Transform3d robotToCam = new Transform3d(
-      new Translation3d(-0.34, .22, 0.18), 
-      new Rotation3d(Math.toDegrees(0), 
-      Math.toRadians(-33), Math.toRadians(180))
-    ); // Cam mounted facing forward, half a meter forward of center, half a meter up from center.
-
+  public Camera(CommandSwerveDrivetrain drivetrain) {
     AprilTagFieldLayout fieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
-    
-    photonPoseEstimator = new PhotonPoseEstimator(
-      fieldLayout, 
-      PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, 
-      camera,
 
-      
-      robotToCam
-    );
+    camLeft = new PhotonCamera("Back_Left_Camera");// Have to change these names eventually
+    camRight = new PhotonCamera("Back_Right_Camera");
+    // if(camLeft.getLatestResult().getTargets().size() > 1) {
+    // camRight = new PhotonCamera("Back_Left_Camera");
+    // }else {
+    // camRight = new PhotonCamera("Back_Right_Camera");
+    // camLeft = new PhotonCamera("Back_Left_Camera");
+    // }
+    photonPoseEstimatorRight = new PhotonPoseEstimator(fieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, camRight,
+        BACK_RIGHT_CAMERA_TO_CENTER);
+    photonPoseEstimatorLeft = new PhotonPoseEstimator(fieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, camLeft,
+        BACK_LEFT_CAMERA_TO_CENTER);
 
-    photonPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
-    this.swerve = swerve;
+    photonPoseEstimatorRight.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
+    photonPoseEstimatorLeft.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
+    this.drivetrain = drivetrain;
   }
 
-  public PhotonPipelineResult getLatestResult() {
-    return camera.getLatestResult();
+  public PhotonPipelineResult getLeftLatestResult() {
+    return camLeft.getLatestResult();
+  }
+
+  public PhotonPipelineResult getRightLatestResult() {
+    return camRight.getLatestResult();
   }
 
   public boolean checkTargetExistence(PhotonPipelineResult result) {
@@ -76,41 +97,25 @@ public class Camera extends SubsystemBase {
     return target.getBestCameraToTarget();
   }
 
-  public double getLatency() {
-    return getLatestResult().getLatencyMillis() / 1000.0;
+  public double getLeftLatency() {
+    return getLeftLatestResult().getLatencyMillis() / 1000.0;
   }
 
-  public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
-    photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
-    SmartDashboard.putNumber("Amount of tags detected", getLatestResult().targets.size());
-
-    return photonPoseEstimator.update();
+  public Optional<EstimatedRobotPose> getLeftEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
+    photonPoseEstimatorLeft.setReferencePose(prevEstimatedRobotPose);
+    SmartDashboard.putNumber("Amount of tags detected Left", getLeftLatestResult().targets.size());
+    return photonPoseEstimatorLeft.update();
   }
 
-  double lastYaw = 0;
-
-  public double rotateToTag(int tagNum) {
-    for (PhotonTrackedTarget tag : getLatestResult().getTargets()) {
-      if (tag.getFiducialId() == tagNum) {
-        SmartDashboard.putNumber("Rotation Speed to get to April Tag", tag.getYaw());
-        lastYaw = tag.getYaw();
-
-        if (Math.abs(tag.getYaw()-4) > 3)
-          return tag.getYaw() * -0.25;
-      }
-    }
-    // if (Math.abs(tag.getYaw()) < 3) {
-    // return tag.getYaw() * -0.25;
-    // } else {
-    // return 0.0;
-    // }
-    return 0.0;
+  public Optional<EstimatedRobotPose> getRightEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
+    photonPoseEstimatorRight.setReferencePose(prevEstimatedRobotPose);
+    SmartDashboard.putNumber("Amount of tags detected Right", getRightLatestResult().targets.size());
+    return photonPoseEstimatorRight.update();
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    setDefaultCommand(new VisionPose(swerve, this));
-    SmartDashboard.putNumber("Amount of tags detected", getLatestResult().targets.size());
+    setDefaultCommand(new VisionPose(drivetrain, this));
   }
 }

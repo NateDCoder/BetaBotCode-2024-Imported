@@ -23,7 +23,7 @@ public class AutoShoot extends Command {
   CommandSwerveDrivetrain swerve;
   Shooter m_shooter;
   AprilTagFieldLayout fieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
-  PIDController turnPID = new PIDController(0.1, 0, 0);
+  PIDController turnPID = new PIDController(0.21, 0, 0.8e-2);
   SwerveRequest.FieldCentric drive;
   Camera camera;
   Intake intake;
@@ -43,32 +43,39 @@ public class AutoShoot extends Command {
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {}
+  public void execute() {
+  }
 
-  public double targetAuton(int tagId) {
-    double[] targetAngles = getTargetTagAngles(tagId);
-    m_shooter.setTargetAngle(targetAngles[0]);
-    double targetRotation = camera.rotateToTag(tagId);
-    return targetRotation;
+  public void targetAuton(int tagId) {
+    double targetAngles = getTargetTagAngles(tagId);
+    m_shooter.setTargetAngle(targetAngles);
   }
 
   public double targetAll(int tagId, Supplier<Boolean> yButton, Supplier<Boolean> leftBumper) {
-    double[] targetAngles = getTargetTagAngles(tagId);
+    double botRotation = swerve.getOdometry().getEstimatedPosition().getRotation().getDegrees();
+    double targetAngles = getTargetTagAngles(tagId);
+    double targetRotation = rotateToTag(tagId);
+
     if (yButton.get()) {
       m_shooter.setTargetAngle(218.5);
     } else if (leftBumper.get()) {
       m_shooter.setTargetAngle(204);
     } else {
-      m_shooter.setTargetAngle(targetAngles[0]);
-      if (Math.abs(m_shooter.targetAngle - m_shooter.getPivotAngle()) < 0.3) {
+      m_shooter.setTargetAngle(targetAngles);
+
+      SmartDashboard.putNumber("Rotation Error", Math.abs(botRotation) - Math.abs(targetRotation));
+      double pivotError = Math.abs(m_shooter.targetAngle - m_shooter.getPivotAngle());
+      double angleError = Math.abs(Math.abs(botRotation) - Math.abs(targetRotation));
+      if (pivotError < 0.3 && angleError < 2.0) {
         intake.feedMotorPower(0.5);
       }
     }
-    double targetRotation = rotateToTag(tagId);
+
     return targetRotation;
   }
 
@@ -87,7 +94,7 @@ public class AutoShoot extends Command {
     return turnPID.calculate(botRotation, target);
   }
 
-  public double[] getTargetTagAngles(int tagId) {
+  public double getTargetTagAngles(int tagId) {
     double botX = swerve.getOdometry().getEstimatedPosition().getX();
     double botY = swerve.getOdometry().getEstimatedPosition().getY();
 
@@ -96,35 +103,34 @@ public class AutoShoot extends Command {
     double relX = botX - tagX;
     double relY = botY - tagY;
 
-    double target = Math.toDegrees(Math.atan2(relY, relX));
-    SmartDashboard.putNumber("Target Robot Angle", target);
-    SmartDashboard.putNumber("Current Robot Angle",
-        swerve.getOdometry().getEstimatedPosition().getRotation().getDegrees());
     relX = Math.abs(relX);
     relY = Math.abs(relY);
     double distance = Math.sqrt((relX * relX) + (relY * relY)) - 0.38;
 
-    //x = distance
-    //f(x) = 83.690131x^3 - 651.40176x^2 + 1892.6791x + 1266.9023
+    // x = distance
+    // Post-Jackson
+    // f(x) = 83.690131x^3 - 651.40176x^2 + 1892.6791x + 1266.9023
+    // Pre-Mason
+    // 468.8264x+2136
 
-    formulaVelocity = 83.690131*Math.pow(distance,3)-651.40176*Math.pow(distance,2)+1892.6791*distance+1266.9023;
-    if (formulaVelocity >= 5000){
+    formulaVelocity = 468.8264 * distance + 2136;
+    if (formulaVelocity >= 5000) {
       m_shooter.velocityRPM = 5000;
     } else {
       m_shooter.velocityRPM = formulaVelocity;
     }
-    SmartDashboard.putNumber("Formula Velocity",  formulaVelocity);
+    SmartDashboard.putNumber("Formula Velocity", formulaVelocity);
     SmartDashboard.putNumber("Distance from target April Tag", distance);
-    SmartDashboard.putNumber("Distance from target April Tag X", relX);
-    SmartDashboard.putNumber("Distance from target April Tag Y", relY);
     // double angle = 0.8061 * Math.pow(distance, 2) - 9.8159 * distance + 221.59;
     // This was alpha code
-    // double angle = 2.06331 * Math.pow(distance, 2) - 18.2605 * distance + 235.563;
+    // double angle = 2.06331 * Math.pow(distance, 2) - 18.2605 * distance +
+    // 235.563;
     // Jackson event formula
+    //
 
     double angle = 0.98515735 * Math.pow(distance, 2) - 12.955594 * distance + 231.53526;
 
-    return new double[] { angle, target };
+    return angle;
   }
 
   // Called once the command ends or is interrupted.

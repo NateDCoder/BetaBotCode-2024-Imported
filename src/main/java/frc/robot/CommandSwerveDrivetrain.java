@@ -37,7 +37,7 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
     private static final double kSimLoopPeriod = 0.005; // 5 ms
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
-    private final SwerveRequest.ApplyChassisSpeeds autoRequest = new SwerveRequest.ApplyChassisSpeeds();
+    public final SwerveRequest.ApplyChassisSpeeds autoRequest = new SwerveRequest.ApplyChassisSpeeds();
     private final CurrentLimitsConfigs driveCurrentLimit = new CurrentLimitsConfigs()
             .withSupplyCurrentLimitEnable(true)
             .withSupplyCurrentLimit(60);

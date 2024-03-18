@@ -9,11 +9,9 @@ import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.CommandSwerveDrivetrain;
-import frc.robot.Constants;
 import frc.robot.Subsystems.Camera;
 
 // This class will constantly updating the position if it see 2 april tags -Nathan 1/27/24
@@ -37,7 +35,8 @@ public class VisionPose extends Command {
 
     EstimatedRobotPose camPose = result.get();
 
-    return swerve.getOdometry().getEstimatedPosition().minus(camPose.estimatedPose.toPose2d()).getTranslation().getNorm();
+    return swerve.getOdometry().getEstimatedPosition().minus(camPose.estimatedPose.toPose2d()).getTranslation()
+        .getNorm();
   }
 
   // Called when the command is initially scheduled.
@@ -45,58 +44,66 @@ public class VisionPose extends Command {
   public void initialize() {
   }
 
-  Pose2d estimatedBotPose;
-  Pose2d camPose2d;
-  Pose3d camPose3d;
-  double botX, botY;
-
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    estimatedBotPose = swerve.getOdometry().getEstimatedPosition();
-    Optional<EstimatedRobotPose> result = camera.getEstimatedGlobalPose(estimatedBotPose);
-    if (!result.isPresent()) { return; }
-    EstimatedRobotPose camPose = result.get();
-
-    camPose2d = camPose.estimatedPose.toPose2d();
-    camPose3d = camPose.estimatedPose;
-
-    botX = estimatedBotPose.getX(); botY = estimatedBotPose.getY();
-
-    SmartDashboard.putNumber("BotX", botX);
-    SmartDashboard.putNumber("BotY", botY);
-    SmartDashboard.putNumber("BotHeading", estimatedBotPose.getRotation().getDegrees());
-
-    SmartDashboard.putBoolean("Camera Targets Present", result.isPresent());
-    // SmartDashboard.putNumber("BotPosHeading",
-    // camPose.estimatedPose.toPose2d().getRotation().getDegrees());
-
-    /*
-     * Only update if the camera pose is within 1 meter of the estimated position.
-     * This will hopefully remove values that are not realistic.
-     */
-    if (
-      (camPose3d.getX() != 0 && 
-        camPose3d.getY() != 0 &&
-        Math.abs(botX - camPose3d.getX()) < 1.0 && 
-        Math.abs(botY - camPose3d.getY()) < 1.0 && 
-        camera.getLatestResult().targets.size() > 1)
-        ) {
-
-      swerve.setOdometryVisionMeasurement(new Pose2d(camPose2d.getX() * Constants.APRIL_TAG_OFFSET,
-        camPose2d.getY(), camPose2d.getRotation()), camPose.timestampSeconds);
-
-      SmartDashboard.putNumber("AprilTagX", camPose2d.getX() * Constants.APRIL_TAG_OFFSET);
-      SmartDashboard.putNumber("AprilTagY", camPose2d.getY());
-      SmartDashboard.putNumber("AprilTagHeading", camPose2d.getRotation().getDegrees());
-
-    } else if ((Math.abs(swerve.getOdometry().getEstimatedPosition().getX()) < 1 &&
-        Math.abs(swerve.getOdometry().getEstimatedPosition().getY()) < 1)) {
-
-      swerve.seedFieldRelative(new Pose2d(camPose2d.getX() * Constants.APRIL_TAG_OFFSET,
-          camPose2d.getY(), camPose2d.getRotation()));
-
+    // Just printing stuff for debugging purposes
+    Optional<EstimatedRobotPose> resultLeft = camera
+        .getLeftEstimatedGlobalPose(swerve.getOdometry().getEstimatedPosition());
+    Optional<EstimatedRobotPose> resultRight = camera
+        .getRightEstimatedGlobalPose(swerve.getOdometry().getEstimatedPosition());
+    if (!resultLeft.isPresent() && !resultRight.isPresent()) {
+      return;
     }
+    int totalTags = camera.getLeftLatestResult().targets.size() + camera.getRightLatestResult().targets.size();
+    SmartDashboard.putNumber("BotPosX", swerve.getOdometry().getEstimatedPosition().getX());
+    SmartDashboard.putNumber("BotPosY", swerve.getOdometry().getEstimatedPosition().getY());
+    SmartDashboard.putNumber("BotPosHeading", swerve.getOdometry().getEstimatedPosition().getRotation().getDegrees());
+    if (resultLeft.isPresent()) {
+      EstimatedRobotPose camPoseLeft = resultLeft.get();
+      if (isValidPose(camPoseLeft.estimatedPose.toPose2d(),
+          swerve.getOdometry().getEstimatedPosition())
+          && camera.getLeftLatestResult().targets.size() > 1) {
+        SmartDashboard.putNumber("Left X", camPoseLeft.estimatedPose.toPose2d().getX());// * 0.96432039823);
+        SmartDashboard.putNumber("Left Y", camPoseLeft.estimatedPose.toPose2d().getY());
+        SmartDashboard.putNumber("Left Rotation", camPoseLeft.estimatedPose.toPose2d().getY());
+        swerve.setOdometryVisionMeasurement(new Pose2d(camPoseLeft.estimatedPose.toPose2d().getX(),// * 0.96432039823,
+            camPoseLeft.estimatedPose.toPose2d().getY(),
+            camPoseLeft.estimatedPose.toPose2d().getRotation()),
+            camPoseLeft.timestampSeconds);
+      }
+      if (swerve.getOdometry().getEstimatedPosition().getX() < 1
+          && swerve.getOdometry().getEstimatedPosition().getY() < 1
+          && camera.getLeftLatestResult().targets.size() > 1) {
+        swerve.seedFieldRelative(camPoseLeft.estimatedPose.toPose2d());
+      }
+    }
+    if (resultRight.isPresent()) {
+      EstimatedRobotPose camPoseRight = resultRight.get();
+      if (isValidPose(camPoseRight.estimatedPose.toPose2d(), swerve.getOdometry().getEstimatedPosition())
+          && camera.getRightLatestResult().targets.size() > 1) {
+        swerve.setOdometryVisionMeasurement(new Pose2d(camPoseRight.estimatedPose.toPose2d().getX(),
+            camPoseRight.estimatedPose.toPose2d().getY(), //* 1.01189,
+            camPoseRight.estimatedPose.toPose2d().getRotation()), camPoseRight.timestampSeconds);
+        SmartDashboard.putNumber("Right X", camPoseRight.estimatedPose.toPose2d().getX());
+        SmartDashboard.putNumber("Right Y", camPoseRight.estimatedPose.toPose2d().getY()); //* 1.01189);
+        SmartDashboard.putNumber("RIght Rotation", camPoseRight.estimatedPose.toPose2d().getRotation().getDegrees());
+      }
+      if (swerve.getOdometry().getEstimatedPosition().getX() < 1
+          && swerve.getOdometry().getEstimatedPosition().getY() < 1
+          && camera.getRightLatestResult().targets.size() > 1) {
+        swerve.seedFieldRelative(camPoseRight.estimatedPose.toPose2d());
+      }
+    }
+  }
+
+  public boolean isValidPose(Pose2d VisionPose, Pose2d BotPose) {
+    return (VisionPose.getX() != 0 &&
+        VisionPose.getY() != 0 &&
+        VisionPose.getX() != 0 &&
+        VisionPose.getY() != 0 &&
+        Math.abs(BotPose.getX() - VisionPose.getX()) < 1.0 &&
+        Math.abs(BotPose.getY() - VisionPose.getY()) < 1.0);
   }
 
   // Called once the command ends or is interrupted.
