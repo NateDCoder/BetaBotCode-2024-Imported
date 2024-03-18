@@ -12,6 +12,7 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -89,63 +90,18 @@ public class Shooter extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler
-    // double _targetAngle = SmartDashboard.getNumber("Target Angle", 0.0);
-    // double _velocity = SmartDashboard.getNumber("Velocity", 0.0);
-
-    // double _p = SmartDashboard.getNumber("P Angle", 0.0);
-    // double _i = SmartDashboard.getNumber("I Angle", 0.0);
-    // double _d = SmartDashboard.getNumber("D Angle", 0.0);
-    // double _ff = SmartDashboard.getNumber("FF Angle", 0.0);
     SmartDashboard.putNumber("Top Speed", shooterTopEncoder.getVelocity());
     SmartDashboard.putNumber("Bottom Speed", shooterBottomEncoder.getVelocity());
-    // if (_targetAngle != tempTargetAngle) {
-    //   tempTargetAngle = _targetAngle;
-    // }
-    // if (_velocity != tempVelocityRPM) {
-    //   tempVelocityRPM = _velocity;
-    // }
-    /***********************************
-     * // sets the PID of angle on shooter from Smart Dashboard
-     * if(_p != p) {
-     * p = _p;
-     * pivotPID.setP(p);
-     * }
-     * if(_i != i) {
-     * i = _i;
-     * pivotPID.setI(i);
-     * }
-     * if(_d != d) {
-     * d = _d;
-     * pivotPID.setD(d);
-     * }
-     * if(_ff != pivotFF) {
-     * pivotFF = _ff;
-     * }
-     ***************************************************************************/
-    // if (_p != p) {
-    //   p = _p;
-    //   pivotPID.setP(p);
-    // }
-    // if (_i != i) {
-    //   i = _i;
-    //   pivotPID.setI(i);
-    // }
-    // if (_d != d) {
-    //   d = _d;
-    //   pivotPID.setD(d);
-    // }
-    // if (_ff != pivotFF) {
-    //   pivotFF = _ff;
-    // }
     SmartDashboard.putNumber("Pivot Encoder", getPivotAngle());
+    if (RobotState.isEnabled()) {
+      setShooterVelocity();
+      setPivotAngle();
+    } else {
+      stopShooter();
+    }
   }
 
   public void setShooterVelocity() {
-    // topShooterPID.setReference(velocityRPM, CANSparkFlex.ControlType.kVelocity);
-    // bottomShooterPID.setReference(-velocityRPM,
-    // CANSparkFlex.ControlType.kVelocity);
-
     topShooterPID.setReference(velocityRPM, CANSparkFlex.ControlType.kVelocity);
     bottomShooterPID.setReference(-velocityRPM * 0.8, CANSparkFlex.ControlType.kVelocity);
     SmartDashboard.putNumber("Target", velocityRPM);
@@ -153,7 +109,6 @@ public class Shooter extends SubsystemBase {
     SmartDashboard.putNumber("Actual Bottom", shooterBottomEncoder.getVelocity());
     SmartDashboard.putNumber("Difference of Shooter",
         shooterTopEncoder.getVelocity() - Math.abs(shooterBottomEncoder.getVelocity()));
-
   }
 
   public void stopShooter() {

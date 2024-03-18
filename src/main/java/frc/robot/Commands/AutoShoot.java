@@ -23,7 +23,7 @@ public class AutoShoot extends Command {
   CommandSwerveDrivetrain swerve;
   Shooter m_shooter;
   AprilTagFieldLayout fieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
-  PIDController turnPID = new PIDController(0.1, 0, 0);
+  PIDController turnPID = new PIDController(0.3, 0, 0.09e-1);
   SwerveRequest.FieldCentric drive;
   Camera camera;
   Intake intake;
@@ -57,22 +57,29 @@ public class AutoShoot extends Command {
   }
 
   public double targetAll(int tagId, Supplier<Boolean> yButton, Supplier<Boolean> leftBumper) {
+    double botRotation = swerve.getOdometry().getEstimatedPosition().getRotation().getDegrees();
     double[] targetAngles = getTargetTagAngles(tagId);
+    double[] targetRotation = rotateToTag(tagId);
+
+    double rotationError = Math.abs(botRotation) - Math.abs(targetRotation[1]);
+
     if (yButton.get()) {
       m_shooter.setTargetAngle(218.5);
     } else if (leftBumper.get()) {
       m_shooter.setTargetAngle(204);
     } else {
       m_shooter.setTargetAngle(targetAngles[0]);
-      if (Math.abs(m_shooter.targetAngle - m_shooter.getPivotAngle()) < 0.3) {
+      SmartDashboard.putNumber ("Rotation Error", rotationError);
+      if (Math.abs(m_shooter.targetAngle - m_shooter.getPivotAngle()) < 0.3 &&
+      (rotationError < 0.75 && rotationError > -0.75)) {
         intake.feedMotorPower(0.5);
       }
     }
-    double targetRotation = rotateToTag(tagId);
-    return targetRotation;
+
+    return targetRotation[0];
   }
 
-  public double rotateToTag(int tagId) {
+  public double[] rotateToTag(int tagId) {
     double botX = swerve.getOdometry().getEstimatedPosition().getX();
     double botY = swerve.getOdometry().getEstimatedPosition().getY();
     double botRotation = swerve.getOdometry().getEstimatedPosition().getRotation().getDegrees();
@@ -84,7 +91,7 @@ public class AutoShoot extends Command {
 
     double target = Math.toDegrees(Math.atan2(relY, relX));
 
-    return turnPID.calculate(botRotation, target);
+    return new double[] {turnPID.calculate(botRotation, target), target};
   }
 
   public double[] getTargetTagAngles(int tagId) {
@@ -110,9 +117,12 @@ public class AutoShoot extends Command {
     formulaVelocity = 83.690131*Math.pow(distance,3)-651.40176*Math.pow(distance,2)+1892.6791*distance+1266.9023;
     if (formulaVelocity >= 5000){
       m_shooter.velocityRPM = 5000;
+    } else if (formulaVelocity <= 1300) {
+      m_shooter.velocityRPM = 1300;
     } else {
       m_shooter.velocityRPM = formulaVelocity;
     }
+    
     SmartDashboard.putNumber("Formula Velocity",  formulaVelocity);
     SmartDashboard.putNumber("Distance from target April Tag", distance);
     SmartDashboard.putNumber("Distance from target April Tag X", relX);
@@ -122,7 +132,7 @@ public class AutoShoot extends Command {
     // double angle = 2.06331 * Math.pow(distance, 2) - 18.2605 * distance + 235.563;
     // Jackson event formula
 
-    double angle = 0.98515735 * Math.pow(distance, 2) - 12.955594 * distance + 231.53526;
+    double angle = 0.98515735 * Math.pow(distance, 2) - 12.955594 * distance + 231.53526 + 0.1;
 
     return new double[] { angle, target };
   }
