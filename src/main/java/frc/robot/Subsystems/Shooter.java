@@ -12,6 +12,7 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -85,16 +86,18 @@ public class Shooter extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler
     SmartDashboard.putNumber("Top Speed", shooterTopEncoder.getVelocity());
     SmartDashboard.putNumber("Bottom Speed", shooterBottomEncoder.getVelocity());
     SmartDashboard.putNumber("Pivot Encoder", getPivotAngle());
+    if (RobotState.isEnabled()) {
+      setShooterVelocity();
+      setPivotAngle();
+    } else {
+      stopShooter();
+    }
   }
 
   public void setShooterVelocity() {
-    // topShooterPID.setReference(velocityRPM, CANSparkFlex.ControlType.kVelocity);
-    // bottomShooterPID.setReference(-velocityRPM, CANSparkFlex.ControlType.kVelocity);
-
     topShooterPID.setReference(velocityRPM, CANSparkFlex.ControlType.kVelocity);
     bottomShooterPID.setReference(-velocityRPM * 0.8, CANSparkFlex.ControlType.kVelocity);
     SmartDashboard.putNumber("Target", velocityRPM);
@@ -102,7 +105,6 @@ public class Shooter extends SubsystemBase {
     SmartDashboard.putNumber("Actual Bottom", shooterBottomEncoder.getVelocity());
     SmartDashboard.putNumber("Difference of Shooter",
         shooterTopEncoder.getVelocity() - Math.abs(shooterBottomEncoder.getVelocity()));
-
   }
 
   public void stopShooter() {
