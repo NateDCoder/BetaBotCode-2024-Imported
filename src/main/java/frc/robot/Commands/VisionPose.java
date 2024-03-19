@@ -55,7 +55,7 @@ public class VisionPose extends Command {
     if (!resultLeft.isPresent() && !resultRight.isPresent()) {
       return;
     }
-    int totalTags = camera.getLeftLatestResult().targets.size() + camera.getRightLatestResult().targets.size();
+    
     SmartDashboard.putNumber("BotPosX", swerve.getOdometry().getEstimatedPosition().getX());
     SmartDashboard.putNumber("BotPosY", swerve.getOdometry().getEstimatedPosition().getY());
     SmartDashboard.putNumber("BotPosHeading", swerve.getOdometry().getEstimatedPosition().getRotation().getDegrees());

@@ -8,21 +8,21 @@ import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Subsystems.Climber;
 
 public class ClimberCommand extends Command {
   /** Creates a new ClimberCommand. */
-  Supplier<Double> leftYSupplier, rightYSupplier;
-  Supplier<Boolean> leftTriggerSupplier;
+  CommandXboxController m_controller;
+  double leftY, rightY;
+  boolean leftTrigger;
   Climber climber;
 
-  public ClimberCommand(Climber climber, Supplier<Double> leftYSupplier, Supplier<Double> rightYSupplier,
-      Supplier<Boolean> leftTriggerSupplier) {
+  public ClimberCommand(Climber climber, Supplier<CommandXboxController> controller) {
     addRequirements(climber);
-    this.leftYSupplier = leftYSupplier;
-    this.rightYSupplier = rightYSupplier;
+
+    this.m_controller = controller.get();
     this.climber = climber;
-    this.leftTriggerSupplier = leftTriggerSupplier;
   }
 
   // Called when the command is initially scheduled.
@@ -34,23 +34,17 @@ public class ClimberCommand extends Command {
   @Override
   public void execute() {
     if (RobotState.isTeleop()) {
-      // if lefty is above or below deadband and the driver is pressing b run the
-      // climbers based on operator input
-      if (rightYSupplier.get() < 0 && leftTriggerSupplier.get()) {
-        climber.setLeftClimb(-rightYSupplier.get() * 0.5);
-      } else if (rightYSupplier.get() > 0) {
-        climber.setLeftClimb(-rightYSupplier.get() * 0.5);
-      } else {
-        climber.setLeftClimb(0);
-      }
-      if (leftYSupplier.get() < 0 && leftTriggerSupplier.get()) {
-        climber.setRightClimb(-leftYSupplier.get() * 0.5);
-      } else if (leftYSupplier.get() > 0) {
-        climber.setRightClimb(-leftYSupplier.get() * 0.5);
-      } else {
-        climber.setRightClimb(0);
-      }
+      leftY = m_controller.getLeftY();
+      rightY = m_controller.getRightY();
+      leftTrigger = m_controller.leftTrigger(0.5).getAsBoolean();
 
+      if (rightY < 0) { climber.setLeftClimb((-rightY * 0.5) * (leftTrigger?1:0)); }
+      else if (rightY > 0) { climber.setLeftClimb(-rightY * 0.5); }
+      else { climber.setLeftClimb(0); }
+
+      if (leftY < 0) { climber.setRightClimb((-leftY * 0.5) * (leftTrigger?1:0)); }
+      else if (leftY > 0) { climber.setRightClimb(-leftY * 0.5); }
+      else { climber.setRightClimb(0); }
     }
   }
 
