@@ -44,37 +44,31 @@ public class AutoShoot extends Command {
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {
-  }
+  public void initialize() {}
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {
+  public void execute() {}
+
+  public double targetAuton(int tagId) {
+    m_shooter.setTargetAngle(getTargetTagAngles(tagId)[0]);
+    return rotateToTag(tagId)[0];
   }
 
-  public void targetAuton(int tagId) {
-    double targetAngles = getTargetTagAngles(tagId);
-    m_shooter.setTargetAngle(targetAngles);
-  }
-
-  public double targetAll(int tagId, Supplier<Boolean> yButton, Supplier<Boolean> leftBumper) {
+  public double targetAll(int tagId, Supplier<CommandXboxController> controller) {
     double botRotation = swerve.getOdometry().getEstimatedPosition().getRotation().getDegrees();
     double[] targetAngles = getTargetTagAngles(tagId);
     double[] targetRotation = rotateToTag(tagId);
 
     double rotationError = Math.abs(botRotation) - Math.abs(targetRotation[1]);
 
-    if (yButton.get()) {
-      m_shooter.setTargetAngle(218.5);
-    } else if (controller.get().leftBumper().getAsBoolean()) {
-      m_shooter.setTargetAngle(204);
-    } else {
+    if (controller.get().y().getAsBoolean()) { m_shooter.setTargetAngle(218.5); }
+    else if (controller.get().leftBumper().getAsBoolean()) { m_shooter.setTargetAngle(204); }
+    else {
       m_shooter.setTargetAngle(targetAngles[0]);
       SmartDashboard.putNumber ("Rotation Error", rotationError);
       if (Math.abs(m_shooter.targetAngle - m_shooter.getPivotAngle()) < 0.3 &&
-      (rotationError < 0.75 && rotationError > -0.75)) {
-        intake.feedMotorPower(0.5);
-      }
+      (rotationError < 0.75 && rotationError > -0.75)) { intake.feedMotorPower(0.5); }
     }
 
     return targetRotation[0];
@@ -95,7 +89,7 @@ public class AutoShoot extends Command {
     return new double[] {turnPID.calculate(botRotation, target), target};
   }
 
-  public double getTargetTagAngles(int tagId) {
+  public double[] getTargetTagAngles(int tagId) {
     double botX = swerve.getOdometry().getEstimatedPosition().getX();
     double botY = swerve.getOdometry().getEstimatedPosition().getY();
 
@@ -104,18 +98,19 @@ public class AutoShoot extends Command {
     double relX = botX - tagX;
     double relY = botY - tagY;
 
+    double target = Math.toDegrees(Math.atan2(relY, relX));
+    SmartDashboard.putNumber("Target Robot Angle", target);
+    SmartDashboard.putNumber("Current Robot Angle",
+        swerve.getOdometry().getEstimatedPosition().getRotation().getDegrees());
     relX = Math.abs(relX);
     relY = Math.abs(relY);
     double distance = Math.sqrt((relX * relX) + (relY * relY)) - 0.38;
 
-    // x = distance
-    // Post-Jackson
-    // f(x) = 83.690131x^3 - 651.40176x^2 + 1892.6791x + 1266.9023
-    // Pre-Mason
-    // 468.8264x+2136
+    //x = distance
+    //f(x) = 83.690131x^3 - 651.40176x^2 + 1892.6791x + 1266.9023
 
-    formulaVelocity = 468.8264 * distance + 2136;
-    if (formulaVelocity >= 5000) {
+    formulaVelocity = 83.690131*Math.pow(distance,3)-651.40176*Math.pow(distance,2)+1892.6791*distance+1266.9023;
+    if (formulaVelocity >= 5000){
       m_shooter.velocityRPM = 5000;
     } else if (formulaVelocity <= 1300) {
       m_shooter.velocityRPM = 1300;
@@ -125,16 +120,16 @@ public class AutoShoot extends Command {
     
     SmartDashboard.putNumber("Formula Velocity",  formulaVelocity);
     SmartDashboard.putNumber("Distance from target April Tag", distance);
+    SmartDashboard.putNumber("Distance from target April Tag X", relX);
+    SmartDashboard.putNumber("Distance from target April Tag Y", relY);
     // double angle = 0.8061 * Math.pow(distance, 2) - 9.8159 * distance + 221.59;
     // This was alpha code
-    // double angle = 2.06331 * Math.pow(distance, 2) - 18.2605 * distance +
-    // 235.563;
+    // double angle = 2.06331 * Math.pow(distance, 2) - 18.2605 * distance + 235.563;
     // Jackson event formula
-    //
 
     double angle = 0.98515735 * Math.pow(distance, 2) - 12.955594 * distance + 231.53526 + 0.1;
 
-    return angle;
+    return new double[] { angle, target };
   }
 
   // Called once the command ends or is interrupted.

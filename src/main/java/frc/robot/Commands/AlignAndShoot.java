@@ -53,8 +53,8 @@ public class AlignAndShoot extends Command {
       isAligned = true;
     }
     m_drivetrain.setControl(m_drivetrain.autoRequest
-        .withSpeeds(new ChassisSpeeds(0, 0,
-            m_autoshoot.rotateToTag(TeamSelector.getTeamColor() ? 4 : 7))));
+      .withSpeeds(new ChassisSpeeds(0, 0,
+        m_autoshoot.rotateToTag(TeamSelector.getTeamColor() ? 4 : 7)[0])));
   }
 
   // Called once the command ends or is interrupted.
