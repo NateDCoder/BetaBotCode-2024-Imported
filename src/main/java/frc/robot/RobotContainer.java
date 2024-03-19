@@ -54,7 +54,7 @@ public class RobotContainer {
 
   // Field centric drive
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-      .withDeadband(MaxSpeed * 0.02).withRotationalDeadband(MaxAngularRate * 0.02) // Add a 2% deadband
+      .withDeadband(MaxSpeed * 0.02).withRotationalDeadband(MaxAngularRate * 0.05) // Add a 2% deadband
       .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // I want field-centric driving in open loop
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
   private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
@@ -76,25 +76,9 @@ public class RobotContainer {
     drivercontroller.rightBumper().whileFalse(Commands.run(() -> m_shooter.targetAngle = 187));
     drivercontroller.rightBumper().whileTrue(
         drivetrain.applyRequest(() -> drive
-            .withVelocityX(-drivercontroller.getLeftY() * Constants.MAX_SPEED * (TeamSelector.getTeamColor() ? -1 : 1)) // Drive
-                                                                                                                        // forward
-                                                                                                                        // with
-                                                                                                                        // negative
-                                                                                                                        // Y
-                                                                                                                        // (forward)
-            .withVelocityY(-drivercontroller.getLeftX() * Constants.MAX_SPEED * (TeamSelector.getTeamColor() ? -1 : 1)) // Drive
-                                                                                                                        // left
-                                                                                                                        // with
-                                                                                                                        // negative
-                                                                                                                        // X
-                                                                                                                        // (left)
-            .withRotationalRate(m_autoshoot.targetAll(TeamSelector.getTeamColor() ? 4 : 7,
-                () -> operatercontroller.y().getAsBoolean(), () -> operatercontroller.rightBumper().getAsBoolean())) // Drive
-                                                                                                                     // counterclockwise
-                                                                                                                     // with
-                                                                                                                     // negative
-                                                                                                                     // X
-                                                                                                                     // (left)
+            .withVelocityX(-drivercontroller.getLeftY() * Constants.MAX_SPEED * (TeamSelector.getTeamColor() ? -1 : 1))
+            .withVelocityY(-drivercontroller.getLeftX() * Constants.MAX_SPEED * (TeamSelector.getTeamColor() ? -1 : 1))
+            .withRotationalRate(m_autoshoot.targetAll(TeamSelector.getTeamColor() ? 4 : 7, () -> operatercontroller))
         ));
 
     m_climber.setDefaultCommand(new ClimberCommand(m_climber, () -> operatercontroller.getLeftY(),
@@ -102,9 +86,6 @@ public class RobotContainer {
     m_shooter.setDefaultCommand(
         new ShooterCommand(drivetrain, m_shooter, m_intake, () -> operatercontroller.b().getAsBoolean(),
             () -> operatercontroller.y().getAsBoolean(), () -> operatercontroller.a().getAsBoolean()));
-
-    drivercontroller.a().whileTrue(
-        drivetrain.applyRequest(() -> brake));
 
     operatercontroller.a().onTrue(Commands.run(() -> m_shooter.enableShooter = true));
     operatercontroller.x()

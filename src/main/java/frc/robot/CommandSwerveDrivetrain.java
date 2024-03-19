@@ -54,10 +54,10 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        for (SwerveModule module : Modules) {
-            module.getDriveMotor().getConfigurator().apply(driveCurrentLimit);
-            module.getSteerMotor().getConfigurator().apply(steerCurrentLimit);
-        }
+        // for (SwerveModule module : Modules) {
+        //     module.getDriveMotor().getConfigurator().apply(driveCurrentLimit);
+        //     module.getSteerMotor().getConfigurator().apply(steerCurrentLimit);
+        // }
     }
 
     // The second one is the one we use
@@ -70,11 +70,10 @@ public class CommandSwerveDrivetrain extends SwerveDrivetrain implements Subsyst
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        for (SwerveModule module : Modules) {
-            module.getDriveMotor().getConfigurator().apply(driveCurrentLimit);
-            module.getSteerMotor().getConfigurator().apply(steerCurrentLimit);
-
-        }
+        // for (SwerveModule module : Modules) {
+        //     module.getDriveMotor().getConfigurator().apply(driveCurrentLimit);
+        //     module.getSteerMotor().getConfigurator().apply(steerCurrentLimit);
+        // }
     }
 
     public SwerveDrivePoseEstimator getOdometry() {

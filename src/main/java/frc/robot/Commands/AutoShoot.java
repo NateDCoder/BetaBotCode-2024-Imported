@@ -13,6 +13,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.Camera;
 import frc.robot.Subsystems.Intake;
@@ -56,30 +57,30 @@ public class AutoShoot extends Command {
     m_shooter.setTargetAngle(targetAngles);
   }
 
-  public double targetAll(int tagId, Supplier<Boolean> yButton, Supplier<Boolean> leftBumper) {
+  public double targetAll(int tagId, Supplier<CommandXboxController> controller) {
     double botRotation = swerve.getOdometry().getEstimatedPosition().getRotation().getDegrees();
     double targetAngles = getTargetTagAngles(tagId);
-    double targetRotation = rotateToTag(tagId);
+    double[] targetRotation = rotateToTag(tagId);
 
-    if (yButton.get()) {
+    if (controller.get().y().getAsBoolean()) {
       m_shooter.setTargetAngle(218.5);
-    } else if (leftBumper.get()) {
+    } else if (controller.get().leftBumper().getAsBoolean()) {
       m_shooter.setTargetAngle(204);
     } else {
       m_shooter.setTargetAngle(targetAngles);
 
-      SmartDashboard.putNumber("Rotation Error", Math.abs(botRotation) - Math.abs(targetRotation));
       double pivotError = Math.abs(m_shooter.targetAngle - m_shooter.getPivotAngle());
-      double angleError = Math.abs(Math.abs(botRotation) - Math.abs(targetRotation));
-      if (pivotError < 0.3 && angleError < 2.0) {
+      double angleError = Math.abs(Math.abs(botRotation) - Math.abs(targetRotation[1]));
+      SmartDashboard.putNumber("Rotation Error", angleError);
+      if (pivotError < 0.3 && Math.abs(angleError) < 0.75) {
         intake.feedMotorPower(0.5);
       }
     }
 
-    return targetRotation;
+    return targetRotation[0];
   }
 
-  public double rotateToTag(int tagId) {
+  public double[] rotateToTag(int tagId) {
     double botX = swerve.getOdometry().getEstimatedPosition().getX();
     double botY = swerve.getOdometry().getEstimatedPosition().getY();
     double botRotation = swerve.getOdometry().getEstimatedPosition().getRotation().getDegrees();
@@ -91,7 +92,7 @@ public class AutoShoot extends Command {
 
     double target = Math.toDegrees(Math.atan2(relY, relX));
 
-    return turnPID.calculate(botRotation, target);
+    return new double[] {turnPID.calculate(botRotation, target), target};
   }
 
   public double getTargetTagAngles(int tagId) {
